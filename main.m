@@ -15,6 +15,8 @@ su = strel('disk',4);
 
 for i=1:size(imgs,3),
     imdiff=abs(imgsd(:,:,i)-bgdepth)>.20;
+    
+
     %20cm margin for kinnect error. But wait! Kinnect doesn't work in black
     %objects (might say something's moving when it's not), also for contours
     %and transitions
@@ -29,6 +31,12 @@ for i=1:size(imgs,3),
     %         imagesc([imgsd(:,:,i) bgdepth]);
     %         title('Depth image i and background image');
     closed_image = imclose(imgdiffiltered, su);
+    [Gmag, Gdir] = imgradient(closed_image,'prewitt');
+    
+    %
+
+    figure()
+    imshowpair(Gmag, Gdir, 'montage');
     %         figure(3);
     %         imagesc([imgdiffiltered closed_image]);
     connected = bwlabel(closed_image); %8-connected
@@ -36,6 +44,9 @@ for i=1:size(imgs,3),
     
     %filtro de ruído por volume (nº de pixeis por classe)
     nclasses = max(connected(:));
+    
+    
+    
     for k=1:nclasses,
         [class_x, class_y] = find(connected==k);
         if( size(class_x,1) <= minimum_pixels),
@@ -81,11 +92,11 @@ for i=1:size(imgs,3),
         Zmin=min(class_depth);
         Zmax=max(class_depth);
         
-        [minValue_x, maxValue_x, minValue_y, maxValue_y, minValue_z, maxValue_z] = boxplot( class_x, class_y, class_depth); 
-        line([minValue_y maxValue_y],[minValue_x minValue_x],'Color','red')
-        line([minValue_y maxValue_y],[maxValue_x maxValue_x],'Color','red')
-        line([minValue_y minValue_y],[minValue_x maxValue_x],'Color','red')
-        line([maxValue_y maxValue_y],[minValue_x maxValue_x],'Color','red')
+%         [minValue_x, maxValue_x, minValue_y, maxValue_y, minValue_z, maxValue_z] = boxplot( class_x, class_y, class_depth); 
+%         line([minValue_y maxValue_y],[minValue_x minValue_x],'Color','red')
+%         line([minValue_y maxValue_y],[maxValue_x maxValue_x],'Color','red')
+%         line([minValue_y minValue_y],[minValue_x maxValue_x],'Color','red')
+%         line([maxValue_y maxValue_y],[minValue_x maxValue_x],'Color','red')
     end
     %         imagesc(connected);
     %         title('Connected components');
