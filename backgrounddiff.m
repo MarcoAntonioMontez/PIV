@@ -96,15 +96,15 @@ maxValue_y=icdf(pdy,0.98);
 pdz=fitdist(class_depth','Normal');
 z_values = min(class_depth):0.1:max(class_depth);
 z = pdf(pdz,z_values);
-minValue_z=icdf(pdz,0.02)
-maxValue_z=icdf(pdz,0.98)
+minValue_z=icdf(pdz,0.05)
+maxValue_z=icdf(pdz,0.95)
 %Escolher as melhores amostras 5% a 95% par X/Y/Z
 
 figure()
 hold all
 hist(squeeze(class_x),0:255) %that's why we squeeze, 0:255 is number of bars/possible value of pixels
 plot(x*10000)
-plot(cdf_x*100)
+%plot(x*100)
 x_line=get(gca,'ylim');
 plot([int16(minValue_x) int16(minValue_x)],x_line)
 hold off
