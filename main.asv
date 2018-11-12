@@ -79,5 +79,4 @@ for i=1:size(imgs,3),
     imshowpair(Gmag, Gdir, 'montage');
     
 end
-
 %%
