@@ -1,9 +1,6 @@
 function [imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder)
-%BACKGROUNDMODULE
-%   After loading the rgb2gray and depth variables, this funciton is responsible
-%   for calculating the background of all the images using the median (for depth
-%   and rgb) and storing it in bgdepth and bggray, respectively.
-%   imgs and imgsd are the rbg images and depths respectively
+%BACKGROUNDMODUL
+%   Detailed explanation goes here
 main_folder = pwd;
 cd(img_folder);
 d=dir('*.jpg');
@@ -15,13 +12,14 @@ cd(main_folder)
 cd(main_folder);
 
 %calculate background
-bgdepth=median(imgsd,3); %dim 3 = all the images
+bgdepth=median(imgsd,3); %dim 3 = 38 images
 bggray=median(imgs,3);
 figure;
 imagesc(bgdepth);
 figure;
 colormap(gray);
 imagesc(bggray);
+
 
 end
 
