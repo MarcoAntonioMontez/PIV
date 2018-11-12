@@ -101,5 +101,4 @@ for i=1:size(imgs,3),
     
     pause(0.1);
 end
-
 %%
