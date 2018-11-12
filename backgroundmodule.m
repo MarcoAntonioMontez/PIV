@@ -12,8 +12,6 @@ cd(main_folder)
 %load images rgb2gray and depth into workspace
 [imgs, imgsd]=load_images(d, dd);
 
-cd(main_folder);
-
 %calculate background
 bgdepth=median(imgsd,3); %dim 3 = all the images
 bggray=median(imgs,3);

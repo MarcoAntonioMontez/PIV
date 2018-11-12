@@ -15,7 +15,6 @@ su = strel('disk',4);
 
 for i=1:size(imgs,3),
     imdiff=abs(imgsd(:,:,i)-bgdepth)>.2;
-    % 
     %20cm margin for kinnect error. But wait! Kinnect doesn't work in black
     %objects (might say something's moving when it's not), also for contours
     %and transitions
