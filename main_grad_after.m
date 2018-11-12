@@ -1,0 +1,86 @@
+%%
+close all; clear; clc;
+format compact
+
+%% Load Images and find Background module
+img_folder = 'filinha';
+[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder);
+%%
+% Bg subtraction for depth (try with gray too)
+%for i=length(d)/2,
+minimum_pixels = 1000;
+se = strel('disk',6);
+su = strel('disk',4);
+
+
+for i=1:size(imgs,3),
+    %%
+    i = 37;
+    imdiff=abs(imgsd(:,:,i)-bgdepth)>.2;
+    %20cm margin for kinnect error. But wait! Kinnect doesn't work in black
+    %objects (might say something's moving when it's not), also for contours
+    %and transitions
+    
+    %imdiff=abs(imgs(:,:,i)-bggray)>.20;
+    imgdiffiltered=imopen(imdiff,se); %%erosion and dilation
+    %         figure(1);
+    %         imagesc([imdiff imgdiffiltered]);
+    %         title('Difference image and morph filtered');
+    %         colormap(gray);
+    %         figure(2);
+    %         imagesc([imgsd(:,:,i) bgdepth]);
+    %         title('Depth image i and background image');
+    closed_image = imclose(imgdiffiltered, su);
+    [Gmag, Gdir] = imgradient(closed_image,'prewitt');
+        
+    %
+
+    figure()
+    imshowpair(Gmag, Gdir, 'montage');
+    %         figure(3);
+    %         imagesc([imgdiffiltered closed_image]);
+    connected = bwlabel(closed_image); %8-connected
+    %vamos experimentar aumentar o raio do disco sem "quebrar" o prof
+    
+    %filtro de ruído por volume (nº de pixeis por classe)
+    nclasses = max(connected(:));
+    
+    
+    
+    for k=1:nclasses,
+        [class_x, class_y] = find(connected==k);
+        if( size(class_x,1) <= minimum_pixels),
+            connected(class_x, class_y) = 0;
+        end
+        clear class_x;
+        clear class_y;
+    end
+    
+    %re-ordenar classes
+    connected2 = bwlabel(connected);
+    nclasses = max(connected2(:));
+    
+    figure()
+    imagesc(connected2);
+    
+    img_copy=imgsd(:,:,i);
+    for x=1:size(connected2,1)
+        for y=1:size(connected,2)
+            if connected2(x,y)==0
+               img_copy(x,y)=20;
+            end
+        end
+    end
+    
+    figure()
+    imagesc(img_copy);
+    
+    [Gmag, Gdir] = imgradient(img_copy,'prewitt');
+
+    figure()
+    imshowpair(Gmag, Gdir, 'montage');
+    
+    %%
+end
+
+%%
