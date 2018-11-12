@@ -5,16 +5,15 @@ run('vlfeat-0.9.21/toolbox/vl_setup')
 close all; clear; clc;
 format compact
 %% Load Images and find Background module
-% img_folder = 'test_2';
-% [imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder);
+img_folder = 'test_2';
+[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder);
 %%
 im1=rgb2gray(imread('test_2/rgb_image1_0052.png'));
 im2=rgb2gray(imread('test_2/rgb_image2_0052.png'));
-% d1 = load('test_2/depth1_0052.mat');
-% d2 = load('test_2/depth1_0052.mat');
-%%
-[f1, d1] = v1_sift(single(im1));
-[f2, d2] = v1_sift(single(im2));
+d1 = load(dd(i).name)
+d2 = load(dd(i).name)
+[f1, d1] = v1_sift(single(rgb2gray(im1)));
+[f2, d2] = v1_sift(single(rgb2gray(im2)));
 figure(1);
 imagesc(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
 figure(2);
