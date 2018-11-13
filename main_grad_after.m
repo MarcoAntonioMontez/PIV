@@ -138,6 +138,9 @@ for i=1:size(imgs,3),
     minValue_y=classes_y(1,2);
     
     figure()
+    imagesc(connected3);
+    
+    figure()
     hold all
     imagesc(connected3);
     line([minValue_y maxValue_y],[minValue_x minValue_x],'Color','red')
