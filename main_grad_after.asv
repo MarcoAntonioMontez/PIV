@@ -100,8 +100,6 @@ for i=1:size(imgs,3),
     
     figure()
     imagesc(connected3);
-    
-    
 %     title('Gradient filtered image')     
     %%
 end

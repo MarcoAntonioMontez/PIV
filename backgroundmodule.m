@@ -6,7 +6,7 @@ function [imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder)
 %   imgs and imgsd are the rbg images and depths respectively
 main_folder = pwd;
 cd(img_folder);
-d=dir('*.png');
+d=dir('*.jpg');
 dd=dir('*.mat');
 cd(main_folder)
 %load images rgb2gray and depth into workspace
