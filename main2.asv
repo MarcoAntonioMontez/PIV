@@ -6,8 +6,8 @@ format compact
 % im1=rgb2gray(imread('bonecos/rgb_image1_0005.png'));
 % im2=rgb2gray(imread('bonecos/rgb_image2_0005.png'));
 
-im1=rgb2gray(imread('ourimages/mountain1.png'));
-im2=rgb2gray(imread('ourimages/mountain2.png'));
+im1=rgb2gray(imread('torre1.jpg'));
+im2=rgb2gray(imread('torre2.jpg'));
 
 
 %Get Features
@@ -26,15 +26,13 @@ imshow(im2); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
 %Show matching
 figure(3) ; clf ;
 
-%if images are differet size we should extend one of them
+sb = size(im1);
+ss = size(im2);
 
-% sb = size(im1);
-% ss = size(im2);
-% 
-% im1(1,end+ss(2),1) = 0; %extend image
-% im1(1:ss(1), sb(2):sb(2)+ss(2)-1, :) = im2;
+im1(1,end+ss(2),1) = 0; %extend image
+im1(1:ss(1), sb(2):sb(2)+ss(2)-1, :) = im2;
 
-imshow(cat(2, im1,im2));
+imshow(cat(2, im1, im2)) ;
 
 xa = f1(1,match(1,:)) ;
 xb = f2(1,match(2,:)) + size(im1,2) ;
