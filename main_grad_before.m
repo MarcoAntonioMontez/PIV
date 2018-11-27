@@ -3,23 +3,21 @@ close all; clear; clc;
 format compact
 
 %% Load Images and find Background module
-img_folder ='um';
-[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder);
+img_folder ='filinha';
+[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder,10);
 %%
 % Bg subtraction for depth (try with gray too)
-minimum_pixels = 2000;
+minimum_pixels = 1000;
 se = strel('disk',6);
 su = strel('disk',4);
 
 
 figure(1)
-gifname='test_animate.gif';
-
 
 for i=1:size(imgs,3)
     %%
     %dar set ao i em debug_on
-    %i=
+    i=60
     
     %Se puserem o debug a 1
     %O gajo vai cuspir 100-300 plots
@@ -27,7 +25,7 @@ for i=1:size(imgs,3)
     % i=num_da_foto
     %E corram só a section dentro do for depois do '%%'
     
-    debugg_on=0;
+    debugg_on=1;
     show_gif_or_images=0; %Gif =0, images=1
      
     if(debugg_on)
@@ -53,7 +51,7 @@ for i=1:size(imgs,3)
     
     [Gmag, Gdir] = imgradient(imgsd(:,:,i),'prewitt');
     
-    logic_grad = Gmag > 1;
+    logic_grad = Gmag > .5;
     
     if(debugg_on)
         figure()
@@ -117,6 +115,12 @@ for i=1:size(imgs,3)
         drawnow
         imagesc(connected2)
     end
+    
+    boxes = calc_boxes(imgsd(:,:,i),connected2,nclasses)
+    
+    
+    last_frame_connected = connected2;
+    last_frame_boxes = 
    
     
     

@@ -17,13 +17,38 @@ im2d = load('fruta2/depth2_0011.mat');
 [f1, d1] = vl_sift(single(im1));
 [f2, d2] = vl_sift(single(im2));
 
-avf1x=sum(f1(1,:))/length(f1);
-avf1y=sum(f1(2,:))/length(f1);
-avf2x=sum(f2(1,:))/length(f2);
-avf2y=sum(f2(2,:))/length(f2);
+length_f1=size(f1,2);
+length_f2=size(f2,2);
 
-avf1z=sum(im1d.depth_array(fix(f1(2,:)), fix(f1(1,:))))/length(f1);
-avf2z=sum(im2d.depth_array(fix(f2(2,:)), fix(f2(1,:))))/length(f2);
+avf1x=sum(f1(1,:))/length_f1;
+avf1y=sum(f1(2,:))/length_f1;
+avf2x=sum(f2(1,:))/length_f2;
+avf2y=sum(f2(2,:))/length_f2;
+
+
+%Estou a assumir que o f1 guarda na forma [x1 x2 ... xn; y1 y2 ... yn; etc]
+%caso o f1 guardasse [x1 y1 ...; x2 y2 ...; ...]
+% fica diferente
+acum1=zeros(1,length_f1);
+for i = 1:length_f1
+    x=f1(1,i);
+    y=f1(2,i);
+    
+    acum1(i)=im1d.depth_array(y,x);
+end
+avf1z=sum(acum1)/length_f1;
+
+acum2=zeros(1,length_f2);
+for i = 1:length_f2
+    x=f2(1,i);
+    y=f2(2,i);
+    
+    acum2(i)=im2d.depth_array(y,x);
+end
+avf2z=sum(acum2)/length_f2;
+
+% avf1z=sum(im1d.depth_array(fix(f1(2,:)), fix(f1(1,:))))/length(f1);
+% avf2z=sum(im2d.depth_array(fix(f2(2,:)), fix(f2(1,:))))/length(f2);
 
 
 % f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
