@@ -45,12 +45,12 @@ yb = f2(2,match(2,:)) ;
 hold on ;
 h = line([xa ; xb], [ya ; yb]) ;
 set(h,'linewidth', 1, 'color', 'b') ;
-
-vl_plotframe(f1(:,match(1,:))) ;
-f2(1,:) = f2(1,:) + size(im1,2) ;
-vl_plotframe(f2(:,match(2,:))) ;
+f1plot=f1;
+f2plot=f2;
+vl_plotframe(f1plot(:,match(1,:)));
+f2plot(1,:) = f2plot(1,:) + size(im1,2) ;
+vl_plotframe(f2plot(:,match(2,:)));
 axis image off ;
-
 
 
 %Ransac
@@ -58,31 +58,62 @@ axis image off ;
 random1 = floor(rand*length(match));
 random2 = floor(rand*length(match));
 random3 = floor(rand*length(match));
+random4 = floor(rand*length(match));
 
 pair1 = match(:, random1);
 pair2 = match(:, random2);
 pair3 = match(:, random3);
+pair4 = match(:, random3);
 
 %getting x,y points from matches --> from f1, f2
-
+%account for matlab switching stuff
 %1st random pair
 f1temp = f1(:,pair1(1));
 f2temp = f2(:,pair1(2));  %%This was giving out 1218 in X which is larger than the picture
-xypair1 = [round(f1temp(1:2)/f1temp(3)), round(f2temp(1:2)/f2temp(3))];  %I divided X,Y by S which is the scale ---> f(X,Y,S,TH)
+xypair1 = [fix(f1temp(1:2)), fix(f2temp(1:2))];  %I divided X,Y by S which is the scale ---> f(X,Y,S,TH)
+
+%deal with matlab shit
+xypair1temp=xypair1;
+xypair1(1,:)=xypair1(2,:);
+xypair1(2,:)=xypair1temp(1,:);
+
 xyzpair1 = vertcat(xypair1, horzcat(im1d.depth_array(xypair1(1,1), xypair1(2,1)), im2d.depth_array(xypair1(1,2), xypair1(2,2))));
 
 %2nd random pair
 f1temp = f1(:,pair2(1));
 f2temp = f2(:,pair2(2));
-xypair2 = [round(f1temp(1:2)/f1temp(3)), round(f2temp(1:2)/f2temp(3))];
+xypair2 = [fix(f1temp(1:2)), fix(f2temp(1:2))];
+
+%deal with matlab shit
+xypair2temp=xypair2;
+xypair2(1,:)=xypair2(2,:);
+xypair2(2,:)=xypair2temp(1,:);
+
 xyzpair2 = vertcat(xypair2, horzcat(im1d.depth_array(xypair2(1,1), xypair2(2,1)), im2d.depth_array(xypair2(1,2), xypair2(2,2))));
 
 %3rd random pair
 f1temp = f1(:,pair3(1));
 f2temp = f2(:,pair3(2));
-xypair3 = [round(f1temp(1:2)/f1temp(3)), round(f2temp(1:2)/f2temp(3))];
+xypair3 = [fix(f1temp(1:2)), fix(f2temp(1:2))];
+
+%deal with matlab shit
+xypair3temp=xypair3;
+xypair3(1,:)=xypair3(2,:);
+xypair3(2,:)=xypair3temp(1,:);
+
 xyzpair3 = vertcat(xypair3, horzcat(im1d.depth_array(xypair3(1,1), xypair3(2,1)), im2d.depth_array(xypair3(1,2), xypair3(2,2))));
 
+%4th random pair
+f1temp = f1(:,pair4(1));
+f2temp = f2(:,pair4(2));
+xypair4 = [fix(f1temp(1:2)), fix(f2temp(1:2))];
+
+%deal with matlab shit
+xypair4temp=xypair4;
+xypair4(1,:)=xypair4(2,:);
+xypair4(2,:)=xypair4temp(1,:);
+
+xyzpair4 = vertcat(xypair4, horzcat(im1d.depth_array(xypair4(1,1), xypair4(2,1)), im2d.depth_array(xypair4(1,2), xypair4(2,2))));
 
 %Estimate transformation
 
