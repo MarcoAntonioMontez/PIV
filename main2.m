@@ -2,9 +2,6 @@
 %vl_version verbose
 close all; clear; clc;
 format compact
-%%
-% im1=rgb2gray(imread('bonecos/rgb_image1_0005.png'));
-% im2=rgb2gray(imread('bonecos/rgb_image2_0005.png'));
 
 im1=rgb2gray(imread('fruta2/rgb_image1_0011.png'));
 im2=rgb2gray(imread('fruta2/rgb_image2_0011.png'));
@@ -17,6 +14,11 @@ im2d = load('fruta2/depth2_0011.mat');
 [f1, d1] = vl_sift(single(im1));
 [f2, d2] = vl_sift(single(im2));
 
+% f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
+%                 S is the scale and TH is the orientation (in radians).
+% d = 128-dimensional vector of class UINT8.
+
+%Values to calculate centroids
 length_f1=size(f1,2);
 length_f2=size(f2,2);
 
@@ -25,35 +27,23 @@ avf1y=sum(f1(2,:))/length_f1;
 avf2x=sum(f2(1,:))/length_f2;
 avf2y=sum(f2(2,:))/length_f2;
 
-
-%Estou a assumir que o f1 guarda na forma [x1 x2 ... xn; y1 y2 ... yn; etc]
-%caso o f1 guardasse [x1 y1 ...; x2 y2 ...; ...]
-% fica diferente
-acum1=zeros(1,length_f1);
+acum1=double(0);
 for i = 1:length_f1
-    x=f1(1,i);
-    y=f1(2,i);
+    x=fix(f1(1,i));
+    y=fix(f1(2,i));
     
-    acum1(i)=im1d.depth_array(y,x);
+    acum1=acum1+double(im1d.depth_array(y,x));
 end
-avf1z=sum(acum1)/length_f1;
+avf1z=acum1/length_f1;
 
-acum2=zeros(1,length_f2);
+acum2=double(0);
 for i = 1:length_f2
-    x=f2(1,i);
-    y=f2(2,i);
+    x=fix(f2(1,i));
+    y=fix(f2(2,i));
     
-    acum2(i)=im2d.depth_array(y,x);
+    acum2=acum2+double(im2d.depth_array(y,x));
 end
-avf2z=sum(acum2)/length_f2;
-
-% avf1z=sum(im1d.depth_array(fix(f1(2,:)), fix(f1(1,:))))/length(f1);
-% avf2z=sum(im2d.depth_array(fix(f2(2,:)), fix(f2(1,:))))/length(f2);
-
-
-% f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
-%                 S is the scale and TH is the orientation (in radians).
-% d = 128-dimensional vector of class UINT8.
+avf2z=acum2/length_f2;
 
 %Show Features
 figure(1);
@@ -89,18 +79,23 @@ axis image off ;
 
 
 %Ransac
-%Choose randomly 3 pairs of points
+%Choose randomly 4 pairs of points
 
 %getting x,y points from matches --> from f1, f2
 %account for matlab switching stuff
+
 %1st random pair
 xyzpair1 = zeros(3,2);
+
 while(ismember(0, xyzpair1))
-    random1 = floor(rand*length(match));
+    random1 = round(rand*length(match));
+    if random1==0
+        random1=1;
+    end
     pair1 = match(:, random1);
     f1temp = f1(:,pair1(1));
-    f2temp = f2(:,pair1(2));  %%This was giving out 1218 in X which is larger than the picture
-    xypair1 = [fix(f1temp(1:2)), fix(f2temp(1:2))];  %I divided X,Y by S which is the scale ---> f(X,Y,S,TH)
+    f2temp = f2(:,pair1(2));
+    xypair1 = [round(f1temp(1:2)), round(f2temp(1:2))];  
 
     %deal with matlab shit
     xypair1temp=xypair1;
@@ -111,13 +106,17 @@ while(ismember(0, xyzpair1))
 end
 
 xyzpair2 = zeros(3,2);
+
 while(ismember(0, xyzpair2))
-    random2 = floor(rand*length(match));
+    random2 = round(rand*length(match));
+    if random2==0
+        random2=1;
+    end
     pair2 = match(:, random2);
     %2nd random pair
     f1temp = f1(:,pair2(1));
     f2temp = f2(:,pair2(2));
-    xypair2 = [fix(f1temp(1:2)), fix(f2temp(1:2))];
+    xypair2 = [round(f1temp(1:2)), round(f2temp(1:2))];
 
     %deal with matlab shit
     xypair2temp=xypair2;
@@ -128,8 +127,12 @@ while(ismember(0, xyzpair2))
 end
 
 xyzpair3 = zeros(3,2);
+
 while(ismember(0, xyzpair3))
-    random3 = floor(rand*length(match));
+    random3 = round(rand*length(match));
+    if random3==0
+        random3=1;
+    end
     pair3 = match(:, random3);
     %3rd random pair
     f1temp = f1(:,pair3(1));
@@ -145,13 +148,17 @@ while(ismember(0, xyzpair3))
 end
 
 xyzpair4 = zeros(3,2);
+
 while(ismember(0, xyzpair4))
-    random4 = floor(rand*length(match));
+    random4 = round(rand*length(match));
+    if random4==0
+        random4=1;
+    end
     pair4 = match(:, random4);
     %4th random pair
     f1temp = f1(:,pair4(1));
     f2temp = f2(:,pair4(2));
-    xypair4 = [fix(f1temp(1:2)), fix(f2temp(1:2))];
+    xypair4 = [round(f1temp(1:2)), round(f2temp(1:2))];
 
     %deal with matlab shit
     xypair4temp=xypair4;
@@ -163,19 +170,22 @@ end
 
 %Estimate transformation
 n=4;
+format long;
+A = [xyzpair1(:,1), xyzpair2(:,1), xyzpair3(:,1), xyzpair4(:,1)];
+B = [xyzpair1(:,2), xyzpair2(:,2), xyzpair3(:,2), xyzpair4(:,2)];
 
-Apoints = [xyzpair1(:,1), xyzpair2(:,1), xyzpair3(:,1), xyzpair4(:,1)];
-Bpoints = [xyzpair1(:,2), xyzpair2(:,2), xyzpair3(:,2), xyzpair4(:,2)];
+A=A';
+B=B';
 
 
 
 %solution for translation
-T = [avf1x-avf2x; avf1y-avf2y; avf1z-avf2z];  %this gives out the Translation
+T = [round(avf2x-avf1x); round(avf2y-avf1y); round(avf2z-avf1z)];  %this gives out the Translation
 
 %plug translation
-A_linha = double(Apoints) - double([T, T, T, T]);
-[d,Z,tr] = procrustes(double(A_linha'), double(Bpoints'), 'reflection', false);
-Z=Z';
+B_linha = double(B) - double([T T T T]');
+[d,Z,tr] = procrustes(double(B_linha), double(A), 'reflection', false);
+
 %Check number of inliers for that transformation
 epsilon = 1; %no idea about the scale of this error
 
