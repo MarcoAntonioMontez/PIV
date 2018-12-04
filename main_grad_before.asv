@@ -20,7 +20,7 @@ objects.frames_tracked=[];
 
 figure()
 
-for frame_num=45:45%size(imgs,3)
+for frame_num=30:30%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -31,8 +31,8 @@ for frame_num=45:45%size(imgs,3)
     % i=num_da_foto
     %E corram só a section dentro do for depois do '%%'
     
-    debugg_on=1;
-    show_gif_or_images=0; %Gif =0, images=1
+    debugg_on=0;
+    show_gif_or_images=1; %Gif =0, images=1
      
     if(debugg_on)
         figure()
@@ -122,21 +122,49 @@ for frame_num=45:45%size(imgs,3)
         imagesc(connected2)
     end
     
+    %8x3*numclasses
     boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses)
     
     %If objects struct is empty then initiliaze with objects
-    if isempty(objects(1).X)
+    if isempty(objects(1).X) && nclasses > 0
+        prev_object_centers=[]
         for j=1:nclasses
             index=((j-1)*3);
             objects(j).X=boxes(1:8,index+1);
             objects(j).Y=boxes(1:8,index+2);
             objects(j).Z=boxes(1:8,index+3);
             objects(j).frames_tracked=[frame_num];
+            
+            %id of ovject plus center of cube coordinates
+            prev_object_centers(j,:)=[j CenterCube(boxes(1:8,index+1:index+3))]
         end
+    else
+        hungarian_matrix = zeros(prev_nclasses,nclasses);
+        
+        
+        for i=j:prev_nclasses
+            index=((j-1)*3);
+            new_center_vector(1,:) =  Center
+        end
+        
+        for j=1:nclasses
+            prev_center=prev_object_centers(j,2:4);
+            
+            hungarian_matrix(j,:)=Distance_to_prev_objects(prev_center,)
+        end
+        
+        
     end
     
+    %Create hungaria matrix
+    %%%dist_a
+    %a
+    %b
+    %c
     
     
+    
+    prev_nclasses=nclasses;
     last_frame_connected = connected2;
     last_frame_boxes = boxes; 
    
