@@ -4,20 +4,20 @@ format compact
 
 %% Load Images and find Background module
 img_folder ='filinha';
-[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder,10);
+[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder,0);
 %%
 % Bg subtraction for depth (try with gray too)
-minimum_pixels = 1000;
+minimum_pixels = 2000;
 se = strel('disk',6);
 su = strel('disk',4);
 
 
-figure(1)
+figure()
 
 for i=1:size(imgs,3)
     %%
     %dar set ao i em debug_on
-    i=60
+    %i=60
     
     %Se puserem o debug a 1
     %O gajo vai cuspir 100-300 plots
@@ -25,7 +25,7 @@ for i=1:size(imgs,3)
     % i=num_da_foto
     %E corram só a section dentro do for depois do '%%'
     
-    debugg_on=1;
+    debugg_on=0;
     show_gif_or_images=0; %Gif =0, images=1
      
     if(debugg_on)
@@ -120,7 +120,7 @@ for i=1:size(imgs,3)
     
     
     last_frame_connected = connected2;
-    last_frame_boxes = 
+    %last_frame_boxes = 
    
     
     
