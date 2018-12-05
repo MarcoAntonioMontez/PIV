@@ -15,12 +15,16 @@ su = strel('disk',4);
 objects.X=[];
 objects.Y=[];
 objects.Z=[];
+objects.id=[];
 objects.frames_tracked=[];
+
+old_objects=[];
+new_objects=[];
 
 
 figure()
 
-for frame_num=49:50%size(imgs,3)
+for frame_num=30:50%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -123,13 +127,15 @@ for frame_num=49:50%size(imgs,3)
     end
     
     %8x3*numclasses
-    boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses)
+    boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses);
     
     %If objects struct is empty then initiliaze with objects
     
     
     
     if isempty(objects(1).X) && nclasses > 0
+        
+        
         
         for j=1:nclasses
             index=((j-1)*3);
@@ -139,16 +145,18 @@ for frame_num=49:50%size(imgs,3)
             new_objects(j).Z=box(:,3);
             new_objects(j).frames_tracked=[frame_num];
             new_objects(j).center=CenterCube(box);
+            new_objects(j).id=j;
             
             objects(j).X=new_objects(j).X;
             objects(j).Y=new_objects(j).Y;
             objects(j).Z=new_objects(j).Z;
             objects(j).frames_tracked=[frame_num];
+            objects(j).id=j;
             
         end
             
     else 
-        
+        % Falta dar debug dos frames 1 ao 30
          for j=1:nclasses
                 index=((j-1)*3);
                 box = boxes(:,(index+1):(index+3));
@@ -159,6 +167,7 @@ for frame_num=49:50%size(imgs,3)
                 new_objects(j).center=CenterCube(box);
          end
          
+         %Creates hungarian matrix with CostFunction
          M=length(old_objects);
          N=length(new_objects);
          hungarian_matrix=zeros(N,M);
@@ -167,25 +176,33 @@ for frame_num=49:50%size(imgs,3)
                hungarian_matrix(i,j) = CostFunction(new_objects(i), old_objects(j));
             end
          end
-         hungarian_matrix
-         matching = assignmentoptimal(hungarian_matrix)
+         hungarian_matrix;
+          %Does hungarian matching
+         matching = assignmentoptimal(hungarian_matrix);
+         
+         for i=1:length(matching)
+            if matching(i)== 0
+                %If new_object is not recognized 
+                %(has the lowest hungarian matching and all others objects 
+                %were matched), append object to objects
+                index=(length(objects)+1);
+                new_objects(i).id=index;
+                objects(index).id=index;
+            else
+               new_objects(i).id=old_objects(matching(i)).id; 
+            end  
+            
+             objects = Concatenate(new_objects(i),objects);
+         end
+         
+%          objects =  Concatenate(new_objects(1),objects);
          
          
-    
     end
-    %Create hungaria matrix
-    %%%dist_a
-    %a
-    %b
-    %c
-    
-    
-    
+    boxes
+ 
     old_objects=new_objects;
-%     prev_nclasses=nclasses;
-%     last_frame_connected = connected2;
-%     last_frame_boxes = boxes; 
-%    
+
     
     
     %%
