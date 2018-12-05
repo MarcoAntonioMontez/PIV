@@ -200,6 +200,7 @@ for frame_num=30:50%size(imgs,3)
          
     end
     boxes
+    
  
     old_objects=new_objects;
 
@@ -207,5 +208,6 @@ for frame_num=30:50%size(imgs,3)
     
     %%
 end
+objects.frames_tracked
 
 %%
