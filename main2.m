@@ -49,10 +49,10 @@ avf2z=acum2/length_f2;
 figure(1);
 imshow(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
 figure(2);
-imshow(im2); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
+imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.5); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
@@ -95,13 +95,7 @@ while(ismember(0, xyzpair1))
     pair1 = match(:, random1);
     f1temp = f1(:,pair1(1));
     f2temp = f2(:,pair1(2));
-    xypair1 = [round(f1temp(1:2)), round(f2temp(1:2))];  
-
-    %deal with matlab shit
-    xypair1temp=xypair1;
-    xypair1(1,:)=xypair1(2,:);
-    xypair1(2,:)=xypair1temp(1,:);
-
+    xypair1 = [round(f2temp(1:2)), round(f1temp(1:2))];  %dealt with matlab shit
     xyzpair1 = vertcat(xypair1, horzcat(im1d.depth_array(xypair1(1,1), xypair1(2,1)), im2d.depth_array(xypair1(1,2), xypair1(2,2))));
 end
 
@@ -116,13 +110,8 @@ while(ismember(0, xyzpair2))
     %2nd random pair
     f1temp = f1(:,pair2(1));
     f2temp = f2(:,pair2(2));
-    xypair2 = [round(f1temp(1:2)), round(f2temp(1:2))];
-
-    %deal with matlab shit
-    xypair2temp=xypair2;
-    xypair2(1,:)=xypair2(2,:);
-    xypair2(2,:)=xypair2temp(1,:);
-
+    xypair2 = [round(f2temp(1:2)), round(f1temp(1:2))];  %dealt with matlab shit
+    
     xyzpair2 = vertcat(xypair2, horzcat(im1d.depth_array(xypair2(1,1), xypair2(2,1)), im2d.depth_array(xypair2(1,2), xypair2(2,2))));
 end
 
@@ -137,13 +126,8 @@ while(ismember(0, xyzpair3))
     %3rd random pair
     f1temp = f1(:,pair3(1));
     f2temp = f2(:,pair3(2));
-    xypair3 = [fix(f1temp(1:2)), fix(f2temp(1:2))];
-
-    %deal with matlab shit
-    xypair3temp=xypair3;
-    xypair3(1,:)=xypair3(2,:);
-    xypair3(2,:)=xypair3temp(1,:);
-
+    xypair3 = [round(f2temp(1:2)), round(f1temp(1:2))]; %dealt with matlab shit
+    
     xyzpair3 = vertcat(xypair3, horzcat(im1d.depth_array(xypair3(1,1), xypair3(2,1)), im2d.depth_array(xypair3(1,2), xypair3(2,2))));
 end
 
@@ -158,12 +142,7 @@ while(ismember(0, xyzpair4))
     %4th random pair
     f1temp = f1(:,pair4(1));
     f2temp = f2(:,pair4(2));
-    xypair4 = [round(f1temp(1:2)), round(f2temp(1:2))];
-
-    %deal with matlab shit
-    xypair4temp=xypair4;
-    xypair4(1,:)=xypair4(2,:);
-    xypair4(2,:)=xypair4temp(1,:);
+    xypair4 = [round(f2temp(1:2)), round(f1temp(1:2))]; %dealt with matlab shit
 
     xyzpair4 = vertcat(xypair4, horzcat(im1d.depth_array(xypair4(1,1), xypair4(2,1)), im2d.depth_array(xypair4(1,2), xypair4(2,2))));
 end
@@ -187,7 +166,7 @@ B_linha = double(B) - double([T T T T]');
 [d,Z,tr] = procrustes(double(B_linha), double(A), 'reflection', false);
 
 %Check number of inliers for that transformation
-epsilon = 1; %no idea about the scale of this error
+epsilon = 1;        %no idea about the scale of this error
 
 
 
