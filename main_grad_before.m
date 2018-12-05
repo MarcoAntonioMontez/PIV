@@ -4,7 +4,7 @@ format compact
 
 %% Load Images and find Background module
 img_folder ='filinha';
-[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder,0);
+[imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder,10);
 %%
 % Bg subtraction for depth (try with gray too)
 minimum_pixels = 2000;
@@ -20,7 +20,7 @@ objects.frames_tracked=[];
 
 figure()
 
-for frame_num=30:31%size(imgs,3)
+for frame_num=49:50%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -126,30 +126,53 @@ for frame_num=30:31%size(imgs,3)
     boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses)
     
     %If objects struct is empty then initiliaze with objects
+    
+    
+    
     if isempty(objects(1).X) && nclasses > 0
-        prev_object_centers=[]
+        
         for j=1:nclasses
             index=((j-1)*3);
-            objects(j).X=boxes(1:8,index+1);
-            objects(j).Y=boxes(1:8,index+2);
-            objects(j).Z=boxes(1:8,index+3);
+            box = boxes(:,(index+1):(index+3));
+            new_objects(j).X=box(:,1);
+            new_objects(j).Y=box(:,2);
+            new_objects(j).Z=box(:,3);
+            new_objects(j).frames_tracked=[frame_num];
+            new_objects(j).center=CenterCube(box);
+            
+            objects(j).X=new_objects(j).X;
+            objects(j).Y=new_objects(j).Y;
+            objects(j).Z=new_objects(j).Z;
             objects(j).frames_tracked=[frame_num];
             
-            %id of ovject plus center of cube coordinates
-            prev_object_centers(j,:)=[j CenterCube(boxes(1:8,index+1:index+3))]
         end
-    else
-        hungarian_matrix = zeros(prev_nclasses,nclasses);
-              %confusao do crl
-        for j=1:prev_nclasses
-            prev_center=prev_object_centers(j,2:4);         
-            %hungarian_matrix(j,:)=
-            Distance_to_prev_objects(prev_center,prev_object_centers(:,2:end))
-        end
-        hungarian_matrix
+            
+    else 
         
-    end
+         for j=1:nclasses
+                index=((j-1)*3);
+                box = boxes(:,(index+1):(index+3));
+                new_objects(j).X=box(:,1);
+                new_objects(j).Y=box(:,2);
+                new_objects(j).Z=box(:,3);
+                new_objects(j).frames_tracked=[frame_num];
+                new_objects(j).center=CenterCube(box);
+         end
+         
+         M=length(old_objects);
+         N=length(new_objects);
+         hungarian_matrix=zeros(N,M);
+         for i=1:N
+            for j=1:M
+               hungarian_matrix(i,j) = CostFunction(new_objects(i), old_objects(j));
+            end
+         end
+         hungarian_matrix
+         matching = assignmentoptimal(hungarian_matrix)
+         
+         
     
+    end
     %Create hungaria matrix
     %%%dist_a
     %a
@@ -158,10 +181,11 @@ for frame_num=30:31%size(imgs,3)
     
     
     
-    prev_nclasses=nclasses;
-    last_frame_connected = connected2;
-    last_frame_boxes = boxes; 
-   
+    old_objects=new_objects;
+%     prev_nclasses=nclasses;
+%     last_frame_connected = connected2;
+%     last_frame_boxes = boxes; 
+%    
     
     
     %%
