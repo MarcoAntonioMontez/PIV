@@ -21,11 +21,13 @@ objects.frames_tracked=[];
 old_objects=[];
 new_objects=[];
 
+cost_treshold=30;
+
 
 figure()
 close all
 
-for frame_num=1:90%size(imgs,3)
+for frame_num=62:75%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -78,24 +80,6 @@ for frame_num=1:90%size(imgs,3)
     end
    
     
-    %imdiff=abs(imgs(:,:,i)-bggray)>.20;
-%     imgdiffiltered=imopen(Gmag,se); %%erosion and dilation
-%     %         figure(1);
-%     %         imagesc([imdiff imgdiffiltered]);
-%     %         title('Difference image and morph filtered');
-%     %         colormap(gray);
-%     %         figure(2);
-%     %         imagesc([imgsd(:,:,i) bgdepth]);
-%     %         title('Depth image i and background image');
-%     closed_image = imclose(imgdiffiltered, su);
-%     [Gmag, Gdir] = imgradient(closed_image,'prewitt');
-%         
-%     %
-% 
-% %     figure()
-% %     imshowpair(Gmag, Gdir, 'montage');
-%     %         figure(3);
-%     %         imagesc([imgdiffiltered closed_image]);
     connected = bwlabel(filtered_img); %8-connected
     %vamos experimentar aumentar o raio do disco sem "quebrar" o prof
     
@@ -201,6 +185,13 @@ for frame_num=1:90%size(imgs,3)
          end
           %Does hungarian matching
          matching = assignmentoptimal(hungarian_matrix);
+         
+         %IF cost is bigger than cost_treshold than object is a new one
+         for i=1:N
+            if min(hungarian_matrix(i,:)) > cost_treshold
+               matching(i)=0; 
+            end
+         end
                   
 %          frame_num
 %          hungarian_matrix
