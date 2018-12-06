@@ -7,7 +7,7 @@ img_folder ='filinha';
 [imgs, imgsd, bgdepth, bggray] = backgroundmodule( img_folder,10);
 %%
 % Bg subtraction for depth (try with gray too)
-minimum_pixels = 2000;
+minimum_pixels = 1000;
 se = strel('disk',6);
 su = strel('disk',4);
 
@@ -23,8 +23,9 @@ new_objects=[];
 
 
 figure()
+close all
 
-for frame_num=30:50%size(imgs,3)
+for frame_num=1:90%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -132,11 +133,7 @@ for frame_num=30:50%size(imgs,3)
     %If objects struct is empty then initiliaze with objects
     
     
-    
-    if isempty(objects(1).X) && nclasses > 0
-        
-        
-        
+    if isempty(objects(1).X) && nclasses > 0    
         for j=1:nclasses
             index=((j-1)*3);
             box = boxes(:,(index+1):(index+3));
@@ -151,10 +148,27 @@ for frame_num=30:50%size(imgs,3)
             objects(j).Y=new_objects(j).Y;
             objects(j).Z=new_objects(j).Z;
             objects(j).frames_tracked=[frame_num];
-            objects(j).id=j;
-            
+            objects(j).id=j;           
         end
+    elseif (isempty(old_objects)) && (nclasses > 0)
+       
+       for j=1:nclasses
+            index=((j-1)*3);
+            box = boxes(:,(index+1):(index+3));
+            new_objects(j).X=box(:,1);
+            new_objects(j).Y=box(:,2);
+            new_objects(j).Z=box(:,3);
+            new_objects(j).frames_tracked=[frame_num];
+            new_objects(j).center=CenterCube(box);
             
+            list_index=(length(objects)+1);
+            new_objects(j).id=list_index;
+            objects(list_index).id=list_index;
+            
+            objects = Concatenate(new_objects(j),objects);
+
+        end
+        
     else 
         % Falta dar debug dos frames 1 ao 30
          for j=1:nclasses
@@ -165,6 +179,15 @@ for frame_num=30:50%size(imgs,3)
                 new_objects(j).Z=box(:,3);
                 new_objects(j).frames_tracked=[frame_num];
                 new_objects(j).center=CenterCube(box);
+                
+                %Se nao existem old_objetcs, todos os new_objectos 
+                %Sao objectos sem correspondencia
+%                 if isempty(old_objects)
+%                     index_object=(length(objects)+1);
+%                     new_objects(j).id=index_object;
+%                     objects(index).id=index;
+%                     objects = Concatenate(new_objects(i),objects);
+%                 end
          end
          
          %Creates hungarian matrix with CostFunction
@@ -176,10 +199,19 @@ for frame_num=30:50%size(imgs,3)
                hungarian_matrix(i,j) = CostFunction(new_objects(i), old_objects(j));
             end
          end
-         hungarian_matrix;
           %Does hungarian matching
          matching = assignmentoptimal(hungarian_matrix);
-         
+                  
+%          frame_num
+%          hungarian_matrix
+%          matching
+         %To not run the next for
+         if (nclasses==0) | (hungarian_matrix==0)
+            matching=[];
+         end
+        
+
+%          length(matching)
          for i=1:length(matching)
             if matching(i)== 0
                 %If new_object is not recognized 
@@ -193,16 +225,17 @@ for frame_num=30:50%size(imgs,3)
             end  
             
              objects = Concatenate(new_objects(i),objects);
-         end
-         
-%          objects =  Concatenate(new_objects(1),objects);
-         
-         
+         end      
+%          objects =  Concatenate(new_objects(1),objects);     
     end
-    boxes
+%     boxes  
+%     if nclasses==0      
+%        old_objects=[];  
+%     else       
+        old_objects=new_objects;
+        new_objects=[];
+%     end
     
- 
-    old_objects=new_objects;
 
     
     

@@ -18,10 +18,13 @@ objects.Z=[];
 objects.id=[];
 objects.frames_tracked=[];
 
+old_objects=[];
+new_objects=[];
+
 
 figure()
 
-for frame_num=49:50%size(imgs,3)
+for frame_num=1:10%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -124,14 +127,12 @@ for frame_num=49:50%size(imgs,3)
     end
     
     %8x3*numclasses
-    boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses)
+    boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses);
     
     %If objects struct is empty then initiliaze with objects
     
     
-    
-    if isempty(objects(1).X) && nclasses > 0
-        
+    if isempty(objects(1).X) && nclasses > 0    
         for j=1:nclasses
             index=((j-1)*3);
             box = boxes(:,(index+1):(index+3));
@@ -146,12 +147,32 @@ for frame_num=49:50%size(imgs,3)
             objects(j).Y=new_objects(j).Y;
             objects(j).Z=new_objects(j).Z;
             objects(j).frames_tracked=[frame_num];
-            objects(j).id=j;
-            
+            objects(j).id=j;           
         end
+    elseif (isempty(old_objects)) | (nclasses > 0)
+       
+       for j=1:nclasses
+            index=((j-1)*3);
+            box = boxes(:,(index+1):(index+3));
+            new_objects(j).X=box(:,1);
+            new_objects(j).Y=box(:,2);
+            new_objects(j).Z=box(:,3);
+            new_objects(j).frames_tracked=[frame_num];
+            new_objects(j).center=CenterCube(box);
+            new_objects(j).id=j;
             
-    else 
+            list_index=(length(objects)+1)
+            
+            objects(j).X=new_objects(j).X;
+            objects(j).Y=new_objects(j).Y;
+            objects(j).Z=new_objects(j).Z;
+            objects(j).frames_tracked=[frame_num];
+            objects(j).id=list_index;
+
+        end
         
+    else 
+        % Falta dar debug dos frames 1 ao 30
          for j=1:nclasses
                 index=((j-1)*3);
                 box = boxes(:,(index+1):(index+3));
@@ -160,8 +181,18 @@ for frame_num=49:50%size(imgs,3)
                 new_objects(j).Z=box(:,3);
                 new_objects(j).frames_tracked=[frame_num];
                 new_objects(j).center=CenterCube(box);
+                
+                %Se nao existem old_objetcs, todos os new_objectos 
+                %Sao objectos sem correspondencia
+%                 if isempty(old_objects)
+%                     index_object=(length(objects)+1);
+%                     new_objects(j).id=index_object;
+%                     objects(index).id=index;
+%                     objects = Concatenate(new_objects(i),objects);
+%                 end
          end
          
+         %Creates hungarian matrix with CostFunction
          M=length(old_objects);
          N=length(new_objects);
          hungarian_matrix=zeros(N,M);
@@ -170,42 +201,48 @@ for frame_num=49:50%size(imgs,3)
                hungarian_matrix(i,j) = CostFunction(new_objects(i), old_objects(j));
             end
          end
-         hungarian_matrix
-         matching = assignmentoptimal(hungarian_matrix)
-         
+          %Does hungarian matching
+         matching = assignmentoptimal(hungarian_matrix);
+                  
+%          frame_num
+%          hungarian_matrix
+%          matching
+         %To not run the next for
+         if (nclasses==0) | (hungarian_matrix==0)
+            matching=[];
+         end
+        
+
+%          length(matching)
          for i=1:length(matching)
             if matching(i)== 0
-                id=(length(objects)+1);
-                objects(id).id=id;
-                objects(id).X=new_objects(i).X;
-                objects(id).Y=new_objects(i).Y;
-                objects(id).Z=new_objects(i).Z;
-                objects(id).frames_tracked=new_objects(i).frames_tracked;
+                %If new_object is not recognized 
+                %(has the lowest hungarian matching and all others objects 
+                %were matched), append object to objects
+                index=(length(objects)+1);
+                new_objects(i).id=index;
+                objects(index).id=index;
             else
-               new_objects(j).id=old_objects.id; 
+               new_objects(i).id=old_objects(matching(i)).id; 
             end  
             
-            objects = Concatenate(new_objects(j),objects);
-         end
-         
-         
+             objects = Concatenate(new_objects(i),objects);
+         end      
+%          objects =  Concatenate(new_objects(1),objects);     
     end
-    %Create hungaria matrix
-    %%%dist_a
-    %a
-    %b
-    %c
+%     boxes  
+%     if nclasses==0      
+%        old_objects=[];  
+%     else       
+        old_objects=new_objects;
+        new_objects=[];
+%     end
     
-    
-    
-    old_objects=new_objects;
-%     prev_nclasses=nclasses;
-%     last_frame_connected = connected2;
-%     last_frame_boxes = boxes; 
-%    
+
     
     
     %%
 end
+objects.frames_tracked
 
 %%
