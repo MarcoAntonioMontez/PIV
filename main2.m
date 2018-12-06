@@ -198,10 +198,13 @@ for k=1:60
     %Calculate distances between matched and calculated points
     %Check number of inliers for that transformation
     D=zeros(1, length(match));
+    l=0;
     for i = 1:length(match)
         D(i)=norm(B_model(:,i)-xyzmatchedfeatures2(:,i));
         if (D(i)<500)
+            l = l+1;
             inliers=inliers+1;
+            vector_inliers(:,l,k)=xyzmatchedfeatures1(:,i);
         end
     end
     
@@ -214,4 +217,3 @@ end
 [Max, index] = max(inlierssave);
 Rfinal=Rsave(:,:,index);
 Tfinal=Tsave(:,:,index);
-
