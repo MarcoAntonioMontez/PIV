@@ -20,10 +20,7 @@ im2d = load('fruta2/depth2_0011.mat');
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
 
-%get all feature points
-length_f1=length(f1);
-length_f2=length(f2);
-
+%Get all feature points;
 %Show Features
 figure(1);
 imshow(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
@@ -101,79 +98,63 @@ for k=1:60
         if random1==0
             random1=1;
         end
-        xyzpair1 = vertcat(xyzmatchedfeatures1(random1,:)
+        xyzpair1 = vertcat(xyzmatchedfeatures1(random1,:), xyzmatchedfeatures2(random1,:));
     end
 
-    xyzpair2 = zeros(3,2);
+    xyzpair2 = zeros(2,3);
 
     while(ismember(0, xyzpair2))
         random2 = round(rand*length(match));
         if random2==0
             random2=1;
         end
-        pair2 = match(:, random2);
-        %2nd random pair
-        f1temp = f1(:,pair2(1));
-        f2temp = f2(:,pair2(2));
-        xypair2 = [round(f2temp(1:2)), round(f1temp(1:2))];  %dealt with matlab shit
-
-        xyzpair2 = vertcat(xypair2, horzcat(im1d.depth_array(xypair2(2,1), xypair2(1,1)), im2d.depth_array(xypair2(2,2), xypair2(1,2))));
+        xyzpair2 = vertcat(xyzmatchedfeatures1(random2,:), xyzmatchedfeatures2(random2,:));
     end
 
-    xyzpair3 = zeros(3,2);
+    xyzpair3 = zeros(2,3);
 
     while(ismember(0, xyzpair3))
         random3 = round(rand*length(match));
         if random3==0
             random3=1;
         end
-        pair3 = match(:, random3);
-        %3rd random pair
-        f1temp = f1(:,pair3(1));
-        f2temp = f2(:,pair3(2));
-        xypair3 = [round(f2temp(1:2)), round(f1temp(1:2))]; %dealt with matlab shit
-
-        xyzpair3 = vertcat(xypair3, horzcat(im1d.depth_array(xypair3(2,1), xypair3(1,1)), im2d.depth_array(xypair3(2,2), xypair3(1,2))));
+        xyzpair3 = vertcat(xyzmatchedfeatures1(random3,:), xyzmatchedfeatures2(random3,:));
     end
 
-    xyzpair4 = zeros(3,2);
+    xyzpair4 = zeros(2,3);
 
     while(ismember(0, xyzpair4))
         random4 = round(rand*length(match));
         if random4==0
             random4=1;
         end
-        pair4 = match(:, random4);
-        %4th random pair
-        f1temp = f1(:,pair4(1));
-        f2temp = f2(:,pair4(2));
-        xypair4 = [round(f2temp(1:2)), round(f1temp(1:2))]; %dealt with matlab shit
-
-        xyzpair4 = vertcat(xypair4, horzcat(im1d.depth_array(xypair4(2,1), xypair4(1,1)), im2d.depth_array(xypair4(2,2), xypair4(1,2))));
+       xyzpair4 = vertcat(xyzmatchedfeatures1(random4,:), xyzmatchedfeatures2(random4,:));
     end
 
     %Estimate transformation
-    n=4;
-    format long;
-    A = [xyzpair1(:,1), xyzpair2(:,1), xyzpair3(:,1), xyzpair4(:,1)];
-    B = [xyzpair1(:,2), xyzpair2(:,2), xyzpair3(:,2), xyzpair4(:,2)];
 
-    A_linha=A';
-    B_linha=B';
+    A = [xyzpair1(1,:); xyzpair2(1,:); xyzpair3(1,:); xyzpair4(1,:)];
+    B = [xyzpair1(2,:); xyzpair2(2,:); xyzpair3(2,:); xyzpair4(2,:)];
 
-
-    %solution for translation
-    T = [round(avf2x-avf1x); round(avf2y-avf1y); round(avf2z-avf1z)];  %this gives out the Translation
-
+    
+    %Calc centroids
+    Centroid1 = [round(av1x), round(av1y), round(av1z)];
+    Centroid2 = [round(av2x), round(av2y), round(av2z)];
+    
+    %STOP WAIT A MINUTE
     %plug translation
-    B_menos_T = double(B_linha) - double([T T T T]');
-    [d,Z,tr] = procrustes(double(B_menos_T), double(A_linha), 'reflection', false);
-
+    A_menos_centroid = A - vertcat(Centroid1, Centroid1, Centroid1, Centroid1);
+    B_menos_centroid = B - vertcat(Centroid2, Centroid2, Centroid2, Centroid2);
+    
+    Rotation=B_menos_centroid'/A_menos_centroid';
+    %OR
+    [d,Z,tr] = procrustes(A_menos_centroid, B_menos_centroid, 'reflection', false);
+    
     %Calculate im2 points from im1 points and calculated model 
     inliers=0;
     %B=R*A+T
     R=tr.T;
-    B_model = double(R)*double(xyzmatchedfeatures1);
+    B_model = R*xyzmatchedfeatures1';
     for i = 1:length(match)
         B_model(:,i)=B_model(:,i)+T(:,1);
     end

@@ -20,10 +20,7 @@ im2d = load('fruta2/depth2_0011.mat');
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
 
-%get all feature points
-length_f1=length(f1);
-length_f2=length(f2);
-
+%Get all feature points;
 %Show Features
 figure(1);
 imshow(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
@@ -135,8 +132,7 @@ for k=1:60
     end
 
     %Estimate transformation
-    n=4;
-    format long;
+
     A = [xyzpair1(1,:); xyzpair2(1,:); xyzpair3(1,:); xyzpair4(1,:)];
     B = [xyzpair1(2,:); xyzpair2(2,:); xyzpair3(2,:); xyzpair4(2,:)];
 
@@ -149,6 +145,9 @@ for k=1:60
     %plug translation
     A_menos_centroid = A - vertcat(Centroid1, Centroid1, Centroid1, Centroid1);
     B_menos_centroid = B - vertcat(Centroid2, Centroid2, Centroid2, Centroid2);
+    
+    Rotation=B_menos_centroid'/A_menos_centroid';
+    %OR
     [d,Z,tr] = procrustes(A_menos_centroid, B_menos_centroid, 'reflection', false);
     
     %Calculate im2 points from im1 points and calculated model 
