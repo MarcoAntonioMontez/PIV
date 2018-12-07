@@ -23,6 +23,6 @@ im_calib = uint8(reshape(im_calib_xyz,[480,640,3]));
 P_calib = uint16(reshape(P(3,:),[480,640])*1000);
 end
 
-% [im2 im2_xyz P P_xyz] = depth_to_rgb(imread('fruta2/rgb_image1_0011.png'),im1d.depth_array);
-% pc=pointCloud(P_xyz', 'color',uint8(im2_xyz));
+% [im1_ im1_xyz P_1 P_xyz_1] = depth_to_rgb(imread('fruta2/rgb_image1_0011.png'),im1d.depth_array);
+% pc=pointCloud(P_xyz_1', 'color',uint8(im1_xyz));
 % figure(1);showPointCloud(pc);
