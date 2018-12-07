@@ -20,10 +20,7 @@ im2d = load('fruta2/depth2_0011.mat');
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
 
-%get all feature points
-length_f1=length(f1);
-length_f2=length(f2);
-
+%Get all feature points;
 %Show Features
 figure(1);
 imshow(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
@@ -74,7 +71,21 @@ for i = 1:length(match)
     xyzmatchedfeatures2(i, 2) = round(f2(2,match(2,i)));
     %imagem =/= matriz (por isso trocado)
     xyzmatchedfeatures2(i, 3) = im2d.depth_array(xyzmatchedfeatures2(i,2), xyzmatchedfeatures2(i,1));
+    
+    
+    %Vamos mandar fora pontos com 0 (kinect poe 0 quando nao consegue ler)
+    %Aqui se encontrar um zero ponho toda a linha a zero
+    if ismember(0, xyzmatchedfeatures1(i, :)) || ismember(0, xyzmatchedfeatures2(i, :))
+        xyzmatchedfeatures2(i,:) = [];
+        xyzmatchedfeatures1(i,:) = [];
+        
+    end   
 end
+%Mandar fora linhas de zeros
+xyzmatchedfeatures2 = xyzmatchedfeatures2(any(xyzmatchedfeatures2,2),:);
+xyzmatchedfeatures1 = xyzmatchedfeatures1(any(xyzmatchedfeatures1,2),:);
+
+
 
 
 %Values to calculate centroids
@@ -84,6 +95,9 @@ av1z=sum(xyzmatchedfeatures1(:,3))/length(xyzmatchedfeatures1);
 av2x=sum(xyzmatchedfeatures2(:,1))/length(xyzmatchedfeatures2);
 av2y=sum(xyzmatchedfeatures2(:,2))/length(xyzmatchedfeatures2);
 av2z=sum(xyzmatchedfeatures2(:,3))/length(xyzmatchedfeatures2);
+
+
+
 
 %Ransac
 %Choose randomly 4 pairs of points
@@ -97,7 +111,7 @@ for k=1:60
     xyzpair1 = zeros(2,3);
 
     while(ismember(0, xyzpair1))
-        random1 = round(rand*length(match));
+        random1 = round(rand*length(xyzmatchedfeatures2));
         if random1==0
             random1=1;
         end
@@ -107,7 +121,7 @@ for k=1:60
     xyzpair2 = zeros(2,3);
 
     while(ismember(0, xyzpair2))
-        random2 = round(rand*length(match));
+        random2 = round(rand*length(xyzmatchedfeatures2));
         if random2==0
             random2=1;
         end
@@ -117,7 +131,7 @@ for k=1:60
     xyzpair3 = zeros(2,3);
 
     while(ismember(0, xyzpair3))
-        random3 = round(rand*length(match));
+        random3 = round(rand*length(xyzmatchedfeatures2));
         if random3==0
             random3=1;
         end
@@ -127,30 +141,34 @@ for k=1:60
     xyzpair4 = zeros(2,3);
 
     while(ismember(0, xyzpair4))
-        random4 = round(rand*length(match));
+        random4 = round(rand*length(xyzmatchedfeatures2));
         if random4==0
             random4=1;
         end
        xyzpair4 = vertcat(xyzmatchedfeatures1(random4,:), xyzmatchedfeatures2(random4,:));
     end
 
+
+
     %Estimate transformation
-    n=4;
-    format long;
-    A = [xyzpair1(1,:); xyzpair2(1,:); xyzpair3(1,:); xyzpair4(1,:)];
-    B = [xyzpair1(2,:); xyzpair2(2,:); xyzpair3(2,:); xyzpair4(2,:)];
+
+    A = [xyzpair1(1,:)', xyzpair2(1,:)', xyzpair3(1,:)', xyzpair4(1,:)'];
+    B = [xyzpair1(2,:)', xyzpair2(2,:)', xyzpair3(2,:)', xyzpair4(2,:)'];
+
 
     
     %Calc centroids
-    Centroid1 = [round(av1x), round(av1y), round(av1z)];
-    Centroid2 = [round(av2x), round(av2y), round(av2z)];
+    Centroid1 = [round(av1x), round(av1y), round(av1z)]';
+    Centroid2 = [round(av2x), round(av2y), round(av2z)]';
     
-    %STOP WAIT A MINUTE
-    %plug translation
-    A_menos_centroid = A - vertcat(Centroid1, Centroid1, Centroid1, Centroid1);
-    B_menos_centroid = B - vertcat(Centroid2, Centroid2, Centroid2, Centroid2);
-    [d,Z,tr] = procrustes(A_menos_centroid, B_menos_centroid, 'reflection', false);
+    %Subtract centroids from A,B
+    A_menos_centroid = A - horzcat(Centroid1, Centroid1, Centroid1, Centroid1);
+    B_menos_centroid = B - horzcat(Centroid2, Centroid2, Centroid2, Centroid2);
     
+    [d,Z,tr] = procrustes(A_menos_centroid', B_menos_centroid', 'reflection', false);
+    
+
+    %STOP. WAIT A MINUTE
     %Calculate im2 points from im1 points and calculated model 
     inliers=0;
     %B=R*A+T
