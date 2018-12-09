@@ -28,7 +28,7 @@ figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.5); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
@@ -169,25 +169,27 @@ for k=1:60
     
 
     %STOP. WAIT A MINUTE
+    T=Centroid2-tr.T*Centroid1;
+    
     %Calculate im2 points from im1 points and calculated model 
     inliers=0;
     %B=R*A+T
     R=tr.T;
     B_model = R*xyzmatchedfeatures1';
-    for i = 1:length(match)
+    for i = 1:length(xyzmatchedfeatures1)
         B_model(:,i)=B_model(:,i)+T(:,1);
     end
 
     %Calculate distances between matched and calculated points
     %Check number of inliers for that transformation
-    D=zeros(1, length(match));
+    D=zeros(1, length(xyzmatchedfeatures1));
     l=0;
-    for i = 1:length(match)
-        D(i)=norm(B_model(:,i)-xyzmatchedfeatures2(:,i));
+    for i = 1:length(xyzmatchedfeatures1)
+        D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
         if (D(i)<500)
-            l = l+1;
             inliers=inliers+1;
-            vector_inliers(:,l,k)=xyzmatchedfeatures1(:,i);
+            %WRONG MUST CORRECT
+            vector_inliers(i,:)=xyzmatchedfeatures1(i,:);
         end
     end
     
