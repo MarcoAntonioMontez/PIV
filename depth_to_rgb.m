@@ -1,7 +1,15 @@
 function [im_calib im_calib_xyz P_calib P] = depth_to_rgb(im,depth_array)
 %DEPTH_TO_RGB
+% argmuments
 %   im = imread(image) 480x640x3 uint8
 %   depth_array = 480x640 uint16
+%
+% output
+%   im_calib = calibrated rbg image
+%   im_calib_xyz = image vector of rgb to use in pointCloud reconstruction
+%   P_calib = calibrated depth.array
+%   P = image vector of depth to use in pointCloud reconstruction
+
 load CalibrationData.mat
 Kd=Depth_cam.K;
 Z=double(depth_array(:)')/1000; %millimeters to meters
