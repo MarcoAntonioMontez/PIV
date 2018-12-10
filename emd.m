@@ -55,6 +55,10 @@ end
 A = [A1; A2];
 b = [W1; W2];
 
+%Debug size
+% size(A)
+% size(b)
+
 % equality constraints
 Aeq = ones(m + n, m * n);
 beq = ones(m + n, 1) * min(sum(W1), sum(W2));

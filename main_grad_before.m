@@ -126,6 +126,9 @@ for frame_num=62:75%size(imgs,3)
             new_objects(j).Z=box(:,3);
             new_objects(j).frames_tracked=[frame_num];
             new_objects(j).center=CenterCube(box);
+            %Add histogram calculation
+            % new_objects(j).hist_red=CalcHistogram(connected2.nclasses,imgs(:,:,:,frame_num))
+            
             new_objects(j).id=j;
             
             objects(j).X=new_objects(j).X;
@@ -144,6 +147,8 @@ for frame_num=62:75%size(imgs,3)
             new_objects(j).Z=box(:,3);
             new_objects(j).frames_tracked=[frame_num];
             new_objects(j).center=CenterCube(box);
+            %Add histogram calculation
+            
             
             list_index=(length(objects)+1);
             new_objects(j).id=list_index;
@@ -163,6 +168,7 @@ for frame_num=62:75%size(imgs,3)
                 new_objects(j).Z=box(:,3);
                 new_objects(j).frames_tracked=[frame_num];
                 new_objects(j).center=CenterCube(box);
+                %Add histogram calculation
                 
                 %Se nao existem old_objetcs, todos os new_objectos 
                 %Sao objectos sem correspondencia
