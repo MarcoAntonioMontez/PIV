@@ -1,8 +1,6 @@
-% run('vlfeat-0.9.21/toolbox/vl_setup')
-% vl_version verbose
 close all; clear;
-format compact
 
+%Load images
 im1_=imread('lab1/rgb_image1_11.png');
 im2_=imread('lab1/rgb_image2_11.png');
 
@@ -13,26 +11,21 @@ im2d = load('lab1/depth2_11.mat');
 [im1, im1_xyz, P_1, P_xyz_1] = depth_to_rgb(im1_,im1d.depth_array);
 [im2, im2_xyz, P_2, P_xyz_2] = depth_to_rgb(im2_,im2d.depth_array);
 
-im1d.depth_array = double(im1d.depth_array)/1000;
-im2d.depth_array = double(im2d.depth_array)/1000;
-
+%Obter point cloud data
 im1xyz=reshape(P_xyz_1,[480,640,3]);
 im2xyz=reshape(P_xyz_2,[480,640,3]);
 
-
-
+%Passar para gray scale
 im1=rgb2gray(im1);
 im2=rgb2gray(im2);
 
-%Get Features
-[f1, d1] = vl_sift(single(im1));
-[f2, d2] = vl_sift(single(im2));
-
+%Get Features (SIFT)
 % f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
+[f1, d1] = vl_sift(single(im1));
+[f2, d2] = vl_sift(single(im2));
 
-%Get all feature points;
 %Show Features
 figure(1);
 imshow(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
@@ -40,12 +33,11 @@ figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
+%increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
-
-
+[match, sc] = vl_ubcmatch(d1, d2, 1.8);
 
 %Show matching
 figure(3); clf ;
@@ -67,16 +59,19 @@ f2plot(1,:) = f2plot(1,:) + size(im1,2) ;
 vl_plotframe(f2plot(:,match(2,:)));
 axis image off ;
 
-
-%Get xyz matches
+%Get xyz matches: guardar x, y, z dos matches em xyz
 xyzmatchedfeatures1=zeros(length(match), 3);
 xyzmatchedfeatures2=zeros(length(match), 3);
 
+%----------------------------------------------------------------------
 teste1=zeros(length(match), 3);
+teste2=zeros(length(match), 3);
 for i = 1:length(match)
    % variavel_teste(i) = im1xyz(round(f1(,match(1,i))), round(f1(,match(2,i))));   
     teste1(i, :, :, :) = im1xyz( round(f1(2,match(1,i))), round(f1(1,match(1,i))));
-
+    teste2(i, :, :, :) = im2xyz( round(f1(2,match(2,i))), round(f1(1,match(2,i))));
+    %HERE
+    
     xyzmatchedfeatures1(i, 1) = round(f1(1,match(1,i)));
     xyzmatchedfeatures1(i, 2) = round(f1(2,match(1,i)));
     %imagem =/= matriz (por isso trocado)
