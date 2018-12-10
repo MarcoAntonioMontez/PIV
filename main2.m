@@ -9,6 +9,8 @@ im2=rgb2gray(imread('fruta2/rgb_image2_0011.png'));
 im1d = load('fruta2/depth1_0011.mat');
 im2d = load('fruta2/depth2_0011.mat');
 
+%missing script to correct images
+
 
 %Get Features
 [f1, d1] = vl_sift(single(im1));
@@ -18,36 +20,7 @@ im2d = load('fruta2/depth2_0011.mat');
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
 
-%get all feature points
-length_f1=length(f1);
-length_f2=length(f2);
-
-
-
-%Values to calculate centroids
-avf1x=sum(f1(1,:))/length_f1;
-avf1y=sum(f1(2,:))/length_f1;
-avf2x=sum(f2(1,:))/length_f2;
-avf2y=sum(f2(2,:))/length_f2;
-
-acum1=double(0);
-for i = 1:length_f1
-    x=round(f1(1,i));
-    y=round(f1(2,i));
-    
-    acum1=acum1+double(im1d.depth_array(y,x));
-end
-avf1z=acum1/length_f1;
-
-acum2=double(0);
-for i = 1:length_f2
-    x=fix(f2(1,i));
-    y=fix(f2(2,i));
-    
-    acum2=acum2+double(im2d.depth_array(y,x));
-end
-avf2z=acum2/length_f2;
-
+%Get all feature points;
 %Show Features
 figure(1);
 imshow(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
@@ -55,10 +28,12 @@ figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.5); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
+
+
 
 %Show matching
 figure(3); clf ;
@@ -81,11 +56,51 @@ vl_plotframe(f2plot(:,match(2,:)));
 axis image off ;
 
 
+
+
+%Get xyz matches
+xyzmatchedfeatures1=zeros(length(match), 3);
+xyzmatchedfeatures2=zeros(length(match), 3);
+for i = 1:length(match)
+    xyzmatchedfeatures1(i, 1) = round(f1(1,match(1,i)));
+    xyzmatchedfeatures1(i, 2) = round(f1(2,match(1,i)));
+    %imagem =/= matriz (por isso trocado)
+    xyzmatchedfeatures1(i, 3) = im1d.depth_array(xyzmatchedfeatures1(i,2), xyzmatchedfeatures1(i,1));
+
+    xyzmatchedfeatures2(i, 1) = round(f2(1,match(2,i)));
+    xyzmatchedfeatures2(i, 2) = round(f2(2,match(2,i)));
+    %imagem =/= matriz (por isso trocado)
+    xyzmatchedfeatures2(i, 3) = im2d.depth_array(xyzmatchedfeatures2(i,2), xyzmatchedfeatures2(i,1));
+    
+    
+    %Vamos mandar fora pontos com 0 (kinect poe 0 quando nao consegue ler)
+    %Aqui se encontrar um zero ponho toda a linha a zero
+    if ismember(0, xyzmatchedfeatures1(i, :)) || ismember(0, xyzmatchedfeatures2(i, :))
+        xyzmatchedfeatures2(i,:) = [];
+        xyzmatchedfeatures1(i,:) = [];
+        
+    end   
+end
+%Mandar fora linhas de zeros
+xyzmatchedfeatures2 = xyzmatchedfeatures2(any(xyzmatchedfeatures2,2),:);
+xyzmatchedfeatures1 = xyzmatchedfeatures1(any(xyzmatchedfeatures1,2),:);
+
+
+
+
+%Values to calculate centroids
+av1x=sum(xyzmatchedfeatures1(:,1))/length(xyzmatchedfeatures1);
+av1y=sum(xyzmatchedfeatures1(:,2))/length(xyzmatchedfeatures1);
+av1z=sum(xyzmatchedfeatures1(:,3))/length(xyzmatchedfeatures1);
+av2x=sum(xyzmatchedfeatures2(:,1))/length(xyzmatchedfeatures2);
+av2y=sum(xyzmatchedfeatures2(:,2))/length(xyzmatchedfeatures2);
+av2z=sum(xyzmatchedfeatures2(:,3))/length(xyzmatchedfeatures2);
+
+
+
+
 %Ransac
 %Choose randomly 4 pairs of points
-
-%getting x,y points from matches --> from f1, f2
-%account for matlab switching stuff
 
 Rsave=zeros(3,3,30);
 Tsave=zeros(3,1,30);
@@ -93,115 +108,88 @@ inlierssave=zeros(1,30);
 
 for k=1:60
     %1st random pair
-    xyzpair1 = zeros(3,2);
+    xyzpair1 = zeros(2,3);
 
     while(ismember(0, xyzpair1))
-        random1 = round(rand*length(match));
+        random1 = round(rand*length(xyzmatchedfeatures2));
         if random1==0
             random1=1;
         end
-        pair1 = match(:, random1);
-        f1temp = f1(:,pair1(1));
-        f2temp = f2(:,pair1(2));
-        xypair1 = [round(f2temp(1:2)), round(f1temp(1:2))];  %dealt with matlab shit
-        xyzpair1 = vertcat(xypair1, horzcat(im1d.depth_array( xypair1(2,1), xypair1(1,1)), im2d.depth_array(xypair1(2,2), xypair1(1,2))));
+        xyzpair1 = vertcat(xyzmatchedfeatures1(random1,:), xyzmatchedfeatures2(random1,:));
     end
 
-    xyzpair2 = zeros(3,2);
+    xyzpair2 = zeros(2,3);
 
     while(ismember(0, xyzpair2))
-        random2 = round(rand*length(match));
+        random2 = round(rand*length(xyzmatchedfeatures2));
         if random2==0
             random2=1;
         end
-        pair2 = match(:, random2);
-        %2nd random pair
-        f1temp = f1(:,pair2(1));
-        f2temp = f2(:,pair2(2));
-        xypair2 = [round(f2temp(1:2)), round(f1temp(1:2))];  %dealt with matlab shit
-
-        xyzpair2 = vertcat(xypair2, horzcat(im1d.depth_array(xypair2(2,1), xypair2(1,1)), im2d.depth_array(xypair2(2,2), xypair2(1,2))));
+        xyzpair2 = vertcat(xyzmatchedfeatures1(random2,:), xyzmatchedfeatures2(random2,:));
     end
 
-    xyzpair3 = zeros(3,2);
+    xyzpair3 = zeros(2,3);
 
     while(ismember(0, xyzpair3))
-        random3 = round(rand*length(match));
+        random3 = round(rand*length(xyzmatchedfeatures2));
         if random3==0
             random3=1;
         end
-        pair3 = match(:, random3);
-        %3rd random pair
-        f1temp = f1(:,pair3(1));
-        f2temp = f2(:,pair3(2));
-        xypair3 = [round(f2temp(1:2)), round(f1temp(1:2))]; %dealt with matlab shit
-
-        xyzpair3 = vertcat(xypair3, horzcat(im1d.depth_array(xypair3(2,1), xypair3(1,1)), im2d.depth_array(xypair3(2,2), xypair3(1,2))));
+        xyzpair3 = vertcat(xyzmatchedfeatures1(random3,:), xyzmatchedfeatures2(random3,:));
     end
 
-    xyzpair4 = zeros(3,2);
+    xyzpair4 = zeros(2,3);
 
     while(ismember(0, xyzpair4))
-        random4 = round(rand*length(match));
+        random4 = round(rand*length(xyzmatchedfeatures2));
         if random4==0
             random4=1;
         end
-        pair4 = match(:, random4);
-        %4th random pair
-        f1temp = f1(:,pair4(1));
-        f2temp = f2(:,pair4(2));
-        xypair4 = [round(f2temp(1:2)), round(f1temp(1:2))]; %dealt with matlab shit
-
-        xyzpair4 = vertcat(xypair4, horzcat(im1d.depth_array(xypair4(2,1), xypair4(1,1)), im2d.depth_array(xypair4(2,2), xypair4(1,2))));
+       xyzpair4 = vertcat(xyzmatchedfeatures1(random4,:), xyzmatchedfeatures2(random4,:));
     end
+
+
 
     %Estimate transformation
-    n=4;
-    format long;
-    A = [xyzpair1(:,1), xyzpair2(:,1), xyzpair3(:,1), xyzpair4(:,1)];
-    B = [xyzpair1(:,2), xyzpair2(:,2), xyzpair3(:,2), xyzpair4(:,2)];
 
-    A_linha=A';
-    B_linha=B';
+    A = [xyzpair1(1,:)', xyzpair2(1,:)', xyzpair3(1,:)', xyzpair4(1,:)'];
+    B = [xyzpair1(2,:)', xyzpair2(2,:)', xyzpair3(2,:)', xyzpair4(2,:)'];
 
 
-    %solution for translation
-    T = [round(avf2x-avf1x); round(avf2y-avf1y); round(avf2z-avf1z)];  %this gives out the Translation
+    
+    %Calc centroids
+    Centroid1 = [round(av1x), round(av1y), round(av1z)]';
+    Centroid2 = [round(av2x), round(av2y), round(av2z)]';
+    
+    %Subtract centroids from A,B
+    A_menos_centroid = A - horzcat(Centroid1, Centroid1, Centroid1, Centroid1);
+    B_menos_centroid = B - horzcat(Centroid2, Centroid2, Centroid2, Centroid2);
+    
+    [d,Z,tr] = procrustes(A_menos_centroid', B_menos_centroid', 'reflection', false);
+    
 
-    %plug translation
-    B_menos_T = double(B_linha) - double([T T T T]');
-    [d,Z,tr] = procrustes(double(B_menos_T), double(A_linha), 'reflection', false);
-
-    %Get xyz matches
-    xyzmatchedfeatures1=zeros(3, length(match));
-    xyzmatchedfeatures2=zeros(3, length(match));
-    for i = 1:length(match)
-        xyzmatchedfeatures1(1,i) = ceil(f1(1,match(1,i)));
-        xyzmatchedfeatures1(2,i) = ceil(f1(2,match(1,i)));
-        xyzmatchedfeatures1(3,i) = im1d.depth_array(xyzmatchedfeatures1(2,i), xyzmatchedfeatures1(1,i));
-
-
-        xyzmatchedfeatures2(1,i) = round(f2(1,match(2,i)));
-        xyzmatchedfeatures2(2,i) = round(f2(2,match(2,i)));
-        xyzmatchedfeatures2(3,i) = im2d.depth_array(xyzmatchedfeatures2(2,i), xyzmatchedfeatures2(1,i));
-    end
-
+    %STOP. WAIT A MINUTE
+    T=Centroid2-tr.T*Centroid1;
+    
     %Calculate im2 points from im1 points and calculated model 
     inliers=0;
     %B=R*A+T
     R=tr.T;
-    B_model = double(R)*double(xyzmatchedfeatures1);
-    for i = 1:length(match)
+    B_model = R*xyzmatchedfeatures1';
+    for i = 1:length(xyzmatchedfeatures1)
         B_model(:,i)=B_model(:,i)+T(:,1);
     end
 
     %Calculate distances between matched and calculated points
     %Check number of inliers for that transformation
-    D=zeros(1, length(match));
-    for i = 1:length(match)
-        D(i)=norm(B_model(:,i)-xyzmatchedfeatures2(:,i));
+    D=zeros(1, length(xyzmatchedfeatures1));
+    l=0;
+    for i = 1:length(xyzmatchedfeatures1)
+        D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
         if (D(i)<500)
             inliers=inliers+1;
+            %WRONG MUST CORRECT
+            vector_inliers(i,:)=xyzmatchedfeatures1(i,:);
         end
     end
     
@@ -214,4 +202,3 @@ end
 [Max, index] = max(inlierssave);
 Rfinal=Rsave(:,:,index);
 Tfinal=Tsave(:,:,index);
-
