@@ -71,12 +71,12 @@ axis image off ;
 %Get xyz matches
 xyzmatchedfeatures1=zeros(length(match), 3);
 xyzmatchedfeatures2=zeros(length(match), 3);
-
-teste1=zeros(length(match), 3);
 for i = 1:length(match)
    % variavel_teste(i) = im1xyz(round(f1(,match(1,i))), round(f1(,match(2,i))));   
-    teste1(i, :, :, :) = im1xyz( round(f1(2,match(1,i))), round(f1(1,match(1,i))));
+    teste1(i, :, :, ) = im1xyz( round(f1(2,match(1,i))), round(f1(1,match(1,i))));
 
+    
+    
     xyzmatchedfeatures1(i, 1) = round(f1(1,match(1,i)));
     xyzmatchedfeatures1(i, 2) = round(f1(2,match(1,i)));
     %imagem =/= matriz (por isso trocado)
