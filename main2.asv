@@ -46,7 +46,7 @@ figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.5); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
@@ -194,9 +194,11 @@ for k=1:60
     %Check number of inliers for that transformation
     D=zeros(1, length(xyzmatchedfeatures1));
     l=0;
-%     this is matrix error form (prof suggestion), but i like ours better    
-%     D = abs(B_model'-xyzmatchedfeatures2).^2;
-%     error = sum(D(:))/numel(B_model');
+    
+    
+    errormat = B_model'-xyzmatchedfeatures2;
+    error=sum(sum(errormat));
+    error = error;
     
     for i = 1:length(xyzmatchedfeatures1)
         D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
