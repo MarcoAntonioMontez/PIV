@@ -10,8 +10,8 @@ im1d = load('lab1/depth1_11.mat');
 im2d = load('lab1/depth2_11.mat');
 
 %Calibration depth/rgp
-[im1, im1_xyz, P_xyz_1] = depth_to_rgb(im1_,im1d.depth_array);
-[im2, im2_xyz, P_xyz_2] = depth_to_rgb(im2_,im2d.depth_array);
+[im1, im1_xyz, P_xyz_1, M_transf1] = depth_to_rgb(im1_,im1d.depth_array);
+[im2, im2_xyz, P_xyz_2, M_transf2] = depth_to_rgb(im2_,im2d.depth_array);
 
 im1d.depth_array = double(im1d.depth_array)/1000;
 im2d.depth_array = double(im2d.depth_array)/1000;
@@ -103,7 +103,6 @@ end
 %Mandar fora linhas de zeros
 xyzmatchedfeatures2 = xyzmatchedfeatures2(any(xyzmatchedfeatures2,2),:);
 xyzmatchedfeatures1 = xyzmatchedfeatures1(any(xyzmatchedfeatures1,2),:);
-
 %Ransac
 %Choose randomly 4 pairs of points
 
@@ -115,7 +114,7 @@ for k=1:60
     %1st random pair
     xyzpair1 = zeros(2,3);
 
-    while(ismember(0, xyzpair1))
+    while(ismember(0, xyzpair1)==1)
         random1 = round(rand*length(xyzmatchedfeatures2));
         if random1==0
             random1=1;
@@ -125,7 +124,7 @@ for k=1:60
 
     xyzpair2 = zeros(2,3);
 
-    while(ismember(0, xyzpair2))
+    while((ismember(0, xyzpair2)==1) || sum(sum(xyzpair2==xyzpair1))==6)
         random2 = round(rand*length(xyzmatchedfeatures2));
         if random2==0
             random2=1;
@@ -135,7 +134,7 @@ for k=1:60
 
     xyzpair3 = zeros(2,3);
 
-    while(ismember(0, xyzpair3))
+    while(ismember(0, xyzpair3)==1 || sum(sum(xyzpair3==xyzpair1))==6 || sum(sum(xyzpair3==xyzpair2))==6)
         random3 = round(rand*length(xyzmatchedfeatures2));
         if random3==0
             random3=1;
@@ -145,7 +144,7 @@ for k=1:60
 
     xyzpair4 = zeros(2,3);
 
-    while(ismember(0, xyzpair4))
+    while(ismember(0, xyzpair4)==1 || sum(sum(xyzpair4==xyzpair1))==6 || sum(sum(xyzpair4==xyzpair2))==6 || sum(sum(xyzpair4==xyzpair3))==6)
         random4 = round(rand*length(xyzmatchedfeatures2));
         if random4==0
             random4=1;
@@ -182,6 +181,7 @@ for k=1:60
         if (D(i)<0.150)
             inliers=inliers+1;
           
+            xyzmatchedfeatures1(i,:)
             vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
             vector2_inliers(i,:,k)=xyzmatchedfeatures2(i,:);
         end
@@ -205,6 +205,15 @@ aux2 = vector2_inliers(:,:,index);
 A_ = aux1(any(aux1,2),:)';
 B_ = aux2(any(aux2,2),:)';
 
+% niu = M_transf1*[A_;ones(1,size(A_,2))];
+% u2=round(niu(1,:)./niu(3,:));
+% v2=round(niu(2,:)./niu(3,:));
+
+% [tf, index]=ismember(P_xyz_1',A_','rows');
+% f=find(tf);
+% ff=P_xyz_1(:,find(tf));
+% figure(1);
+% hold on; plot(u2, v2, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
 
 %Get new model
 [R_, T_] = calcR_T_svd(A_, B_);

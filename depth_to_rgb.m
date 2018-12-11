@@ -13,6 +13,7 @@ function [im_rgb_calib, im_rgb_vector_calib, P_xyz, M_transf] = depth_to_rgb(im,
 %   reconstruction)
 %       3x307200 double (x,y,z) World coordinates
 
+
 load cameraparametersAsus.mat
 % cam_params.Kdepth  - the 3x3 matrix for the intrinsic parameters for depth
 % cam_params.Krgb - the 3x3 matrix for the intrinsic parameters for rgb
