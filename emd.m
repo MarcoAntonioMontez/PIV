@@ -67,7 +67,8 @@ beq = ones(m + n, 1) * min(sum(W1), sum(W2));
 lb = zeros(1, m * n);
 
 % linear programming
-[x, fval] = linprog(f, A, b, Aeq, beq, lb);
+options = optimoptions('linprog','Display','none');
+[x, fval] = linprog(f, A, b, Aeq, beq, lb,[],[],options);
 fval = fval / sum(x);
 
 end

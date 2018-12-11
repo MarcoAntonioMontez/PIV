@@ -33,6 +33,10 @@ function [ histograms ] = CalcHistogram( connected, nclasses, rgbImage)
        histograms(i).hist_green=yGreen/length(Green);
        histograms(i).hist_blue=yBlue/length(Blue);
     end
+    
+    if nclasses==0    
+        histograms=[];    
+    end
 
 end
 

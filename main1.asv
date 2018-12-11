@@ -21,7 +21,6 @@ objects.frames_tracked=[];
 
 old_objects=[];
 new_objects=[];
-histograms=[];
 
 cost_treshold=60;
 
@@ -29,7 +28,7 @@ cost_treshold=60;
 figure()
 close all
 
-for frame_num=1:100%size(imgs,3)
+for frame_num=51:70%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -66,7 +65,7 @@ for frame_num=1:100%size(imgs,3)
     
     [Gmag, Gdir] = imgradient(imgsd(:,:,frame_num),'prewitt');
     
-    logic_grad = Gmag > .2;
+    logic_grad = Gmag > .5;
     
     if(debugg_on)
         figure()
@@ -115,7 +114,7 @@ for frame_num=1:100%size(imgs,3)
     
     %8x3*numclasses
     boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses);
-    
+    histograms=[];
     histograms=CalcHistogram(connected2,nclasses,imgs(:,:,:,frame_num));
     %If objects struct is empty then initiliaze with objects
     
@@ -221,12 +220,7 @@ for frame_num=1:100%size(imgs,3)
          end      
 %          objects =  Concatenate(new_objects(1),objects);     
     end 
-        old_objects=new_objects;
-        new_objects=[];
-        histograms=[];
-
-
-    
+        
     
     %%
 end

@@ -24,14 +24,17 @@ function [ histograms ] = CalcHistogram( connected, nclasses, rgbImage)
         [yGreen] = imhist(Green,bins);
         [yBlue] = imhist(Blue,bins);
 
+       %Save histograms.img for debug purposes
        histograms(i).img=img;
        
-       %Divide by lenght(color) to normalize the number of colous in each
-       %bin
+       %Divide by lenght(color) to normalize the number the number of hits
+       %in each bin
        histograms(i).hist_red=yRed/length(Red);
        histograms(i).hist_green=yGreen/length(Green);
        histograms(i).hist_blue=yBlue/length(Blue);
     end
+    
+    if nclasse
 
 end
 
