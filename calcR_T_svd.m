@@ -2,8 +2,8 @@
 
 function [R, T] = calcR_T_svd(A, B)
     %Calc centroids
-    Centroid1=mean(A')';
-    Centroid2=mean(B')';
+    Centroid1=mean(A,2);
+    Centroid2=mean(B,2);
 
     %Subtract centroids from A,B
     A_menos_centroid = A - repmat(Centroid1,1,size(A, 2));
