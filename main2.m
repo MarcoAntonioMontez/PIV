@@ -16,10 +16,17 @@ im2d = load('lab1/depth2_11.mat');
 im1d.depth_array = double(im1d.depth_array)/1000;
 im2d.depth_array = double(im2d.depth_array)/1000;
 
-im1xyz=reshape(P_xyz_1,[480,640,3]);
-im2xyz=reshape(P_xyz_2,[480,640,3]);
+%im1xyz is "image in 3D"
+im1xyz(:,:,1)=reshape(P_xyz_1(1,:),[480,640]); %World x
+im1xyz(:,:,2)=reshape(P_xyz_1(2,:),[480,640]); %World y
+im1xyz(:,:,3)=reshape(P_xyz_1(3,:),[480,640]); %World z
+%imshow(im1xyz) %imshow(rgb2gray(im1xyz))
 
-
+%im2xyz is "image in 3D"
+im2xyz(:,:,1)=reshape(P_xyz_2(1,:),[480,640]); %World x
+im2xyz(:,:,2)=reshape(P_xyz_2(2,:),[480,640]); %World y
+im2xyz(:,:,3)=reshape(P_xyz_2(3,:),[480,640]); %World z
+% imshow(im2xyz) %imshow(rgb2gray(im2xyz))
 
 im1=rgb2gray(im1);
 im2=rgb2gray(im2);
@@ -27,7 +34,6 @@ im2=rgb2gray(im2);
 %Get Features
 [f1, d1] = vl_sift(single(im1));
 [f2, d2] = vl_sift(single(im2));
-
 % f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
@@ -45,13 +51,9 @@ imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
 
-
-
 %Show matching
 figure(3); clf ;
-
 imshow(cat(2, im1,im2));
-
 xa = f1(1,match(1,:)) ;
 xb = f2(1,match(2,:)) + size(im1,2) ;
 ya = f1(2,match(1,:)) ;
@@ -73,19 +75,21 @@ xyzmatchedfeatures1=zeros(length(match), 3);
 xyzmatchedfeatures2=zeros(length(match), 3);
 
 teste1=zeros(length(match), 3);
-for i = 1:length(match)
-   % variavel_teste(i) = im1xyz(round(f1(,match(1,i))), round(f1(,match(2,i))));   
-    teste1(i, :, :, :) = im1xyz( round(f1(2,match(1,i))), round(f1(1,match(1,i))));
+teste2=zeros(length(match), 3);
 
-    xyzmatchedfeatures1(i, 1) = round(f1(1,match(1,i)));
-    xyzmatchedfeatures1(i, 2) = round(f1(2,match(1,i)));
+for i = 1:length(match) 
+    teste1(i,:) = im1xyz( round(f1(2,match(1,i))), round(f1(1,match(1,i))),:);
+    teste2(i,:) = im2xyz( round(f2(2,match(2,i))), round(f2(1,match(2,i))),:);
+    
+    xyzmatchedfeatures1(i, 1) = teste1(i,1);
+    xyzmatchedfeatures1(i, 2) = teste1(i,2);
     %imagem =/= matriz (por isso trocado)
-    xyzmatchedfeatures1(i, 3) = im1d.depth_array(xyzmatchedfeatures1(i,2), xyzmatchedfeatures1(i,1));
+    xyzmatchedfeatures1(i, 3) = teste1(i,3);
 
-    xyzmatchedfeatures2(i, 1) = round(f2(1,match(2,i)));
-    xyzmatchedfeatures2(i, 2) = round(f2(2,match(2,i)));
+    xyzmatchedfeatures2(i, 1) = teste2(i,1);
+    xyzmatchedfeatures2(i, 2) = teste2(i,2);
     %imagem =/= matriz (por isso trocado)
-    xyzmatchedfeatures2(i, 3) = im2d.depth_array(xyzmatchedfeatures2(i,2), xyzmatchedfeatures2(i,1));
+    xyzmatchedfeatures2(i, 3) = teste2(i,3);
     
     
     %Vamos mandar fora pontos com 0 (kinect poe 0 quando nao consegue ler)
@@ -159,22 +163,28 @@ for k=1:60
    
     
     %Calc centroids
-    Centroid1 = round(av1');
-    Centroid2 = round(av2');
+    Centroid1 = av1';
+    Centroid2 = av2';
     
     %Subtract centroids from A,B
     A_menos_centroid = A - horzcat(Centroid1, Centroid1, Centroid1, Centroid1);
     B_menos_centroid = B - horzcat(Centroid2, Centroid2, Centroid2, Centroid2);
     
-    [d,Z,tr] = procrustes(B_menos_centroid', A_menos_centroid', 'reflection', false);
-
-    T=Centroid2-tr.T*Centroid1;
+%     [d,Z,tr] = procrustes(B_menos_centroid', A_menos_centroid', 'reflection', false);
+%     R=tr.T;
+%     T=Centroid2-R*Centroid1;
     
+    M1 = A_menos_centroid*B_menos_centroid';
+    [U,S,V] = svd(M1);
+    Mdiagonal = ones(size(U',1),1);
+    Mdiagonal(size(U',1),1) = det(V*U');
+    R = V * (diag(Mdiagonal)) * U';
+    T=Centroid2-R*Centroid1;
+
     %Calculate im2 points from im1 points and calculated model 
     inliers=0;
     
     %B=R*A+T
-    R=tr.T;
     B_model = R*xyzmatchedfeatures1';
     for i = 1:length(xyzmatchedfeatures1)
         B_model(:,i)=B_model(:,i)+T(:);
@@ -186,10 +196,11 @@ for k=1:60
     l=0;
     for i = 1:length(xyzmatchedfeatures1)
         D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
-        if (D(i)<0.50)
+        if (D(i)<0.05)
             inliers=inliers+1;
-            %WRONG MUST CORRECT
-            %vector_inliers(i,:)=xyzmatchedfeatures1(i,:);
+          
+            vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
+            vector2_inliers(i,:,k)=xyzmatchedfeatures2(i,:);
         end
     end
     
@@ -200,5 +211,57 @@ for k=1:60
 end
 
 [Max, index] = max(inlierssave);
-Rfinal=Rsave(:,:,index)
-Tfinal=Tsave(:,:,index)
+Rsaved=Rsave(:,:,index);
+Tsaved=Tsave(:,:,index);
+
+aux1 = vector1_inliers(:,:,index);
+aux2 = vector2_inliers(:,:,index);
+
+A_ = aux1(any(aux1,2),:)';
+B_ = aux2(any(aux2,2),:)';
+av1_=mean(A_');
+av2_=mean(B_');
+
+%Calc centroids
+Centroid1_ = av1_';
+Centroid2_ = av2_';
+
+%Subtract centroids from A,B
+A_menos_centroid_ = A_ - repmat(Centroid1_,1,Max);
+B_menos_centroid_ = B_ - repmat(Centroid2_,1,Max);
+
+%Get new model
+M1 = A_menos_centroid_*B_menos_centroid_';
+[U,S,V] = svd(M1);
+Mdiagonal = ones(size(U',1),1);
+Mdiagonal(size(U',1),1) = det(V*U');
+%Get R anD t
+R_ = V * (diag(Mdiagonal)) * U';
+T_=Centroid2_-R_*Centroid1_;
+
+P_xyz_1_em_2 = R_*P_xyz_1 + repmat(T_,1,480*640);
+
+x = [];
+y = [];
+z = [];
+r = [];
+g = [];
+b = [];
+xyz_images_t = [P_xyz_1_em_2, P_xyz_2];
+cl = [im1_xyz', im2_xyz'];
+
+x=[x;xyz_images_t(1,:)];
+y=[y;xyz_images_t(2,:)];
+z=[z;xyz_images_t(3,:)];
+r=[r;cl(1,:)];
+g=[g;cl(2,:)];
+b=[b;cl(3,:)];
+% r=double(r);
+% g=double(g);
+% b=double(b);
+
+pxyz = [x;y;z];
+prgb = [r;g;b]';
+
+pc=pointCloud(pxyz','Color',uint8(prgb));
+figure(4);showPointCloud(pc);
