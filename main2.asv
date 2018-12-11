@@ -104,8 +104,12 @@ end
 xyzmatchedfeatures2 = xyzmatchedfeatures2(any(xyzmatchedfeatures2,2),:);
 xyzmatchedfeatures1 = xyzmatchedfeatures1(any(xyzmatchedfeatures1,2),:);
 
-%[xyzmatchedfeatures1, xyzmatchedfeatures2]=delete_bad_duplicate(xyzmatchedfeatures1, xyzmatchedfeatures2);
-
+   [B,ix] = sortrows(A);
+   f = find(diff([false;all(diff(B,1,1)==0,2);false])~=0);
+   s = ones(length(f)/2,1);
+   f1 = f(1:2:end-1); f2 = f(2:2:end);
+   t = cumsum(accumarray([f1;f2+1],[s;-s],[size(B,1)+1,1]));
+   A(ix(t(1:end-1)>0),:) = []; % <-- Corrected
 
 %Ransac
 %Choose randomly 4 pairs of points
@@ -182,9 +186,10 @@ for k=1:60
     
     for i = 1:length(xyzmatchedfeatures1)
         D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
-        if (D(i)<0.50)
+        if (D(i)<0.150)
             inliers=inliers+1;
-            
+          
+            xyzmatchedfeatures1(i,:)
             vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
             vector2_inliers(i,:,k)=xyzmatchedfeatures2(i,:);
         end
@@ -208,36 +213,15 @@ aux2 = vector2_inliers(:,:,index);
 A_ = aux1(any(aux1,2),:)';
 B_ = aux2(any(aux2,2),:)';
 
-niu = M_transf1*[A_;ones(1,size(A_,2))];
-u1=round(niu(1,:)./niu(3,:));
-v1=round(niu(2,:)./niu(3,:));
+% niu = M_transf1*[A_;ones(1,size(A_,2))];
+% u2=round(niu(1,:)./niu(3,:));
+% v2=round(niu(2,:)./niu(3,:));
 
-[tf, index]=ismember(P_xyz_1',A_','rows');
-f=find(tf);
-ff=P_xyz_1(:,find(tf));
-figure(1);
-hold on; plot(u1, v1, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
-
-niu = M_transf2*[B_;ones(1,size(B_,2))];
-u2=round(niu(1,:)./niu(3,:));
-v2=round(niu(2,:)./niu(3,:));
-
-[tf, index]=ismember(P_xyz_2',B_','rows');
-f=find(tf);
-ff=P_xyz_2(:,find(tf));
-figure(2);
-hold on; plot(u2, v2, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
-
-figure(3);
-hold on ;
-h = line([u1 ; u2 + size(im1,2)], [v1 ; v2]) ;
-set(h,'linewidth', 1, 'color', 'r') ;
-f1plot=f1;
-f2plot=f2;
-vl_plotframe(f1plot(:,match(1,:)));
-f2plot(1,:) = f2plot(1,:) + size(im1,2) ;
-vl_plotframe(f2plot(:,match(2,:)));
-axis image off ;
+% [tf, index]=ismember(P_xyz_1',A_','rows');
+% f=find(tf);
+% ff=P_xyz_1(:,find(tf));
+% figure(1);
+% hold on; plot(u2, v2, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
 
 %Get new model
 [R_, T_] = calcR_T_svd(A_, B_);
