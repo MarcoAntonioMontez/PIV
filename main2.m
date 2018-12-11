@@ -3,11 +3,11 @@
 close all; clear;
 format compact
 
-im1_=imread('lab1/rgb_image1_11.png');
-im2_=imread('lab1/rgb_image2_11.png');
+im1_=imread('data_rgb/rgb_image1_6.png');
+im2_=imread('data_rgb/rgb_image2_6.png');
 
-im1d = load('lab1/depth1_11.mat');
-im2d = load('lab1/depth2_11.mat');
+im1d = load('data_rgb/depth1_6.mat');
+im2d = load('data_rgb/depth2_6.mat');
 
 %Calibration depth/rgp
 [im1, im1_xyz, P_xyz_1, M_transf1] = depth_to_rgb(im1_,im1d.depth_array);
@@ -40,9 +40,9 @@ im2=rgb2gray(im2);
 
 %Get all feature points;
 %Show Features
-figure(1);
+im1descriptors=figure(1);
 imshow(im1); hold on; plot(f1(1,:), f1(2,:), '*'); hold off;
-figure(2);
+im2descriptors=figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
@@ -52,7 +52,7 @@ imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 %    the lower, the better
 
 %Show matching
-figure(3); clf ;
+matching=figure(3); clf ;
 imshow(cat(2, im1,im2));
 xa = f1(1,match(1,:)) ;
 xb = f2(1,match(2,:)) + size(im1,2) ;
@@ -61,7 +61,7 @@ yb = f2(2,match(2,:)) ;
 
 hold on ;
 h = line([xa ; xb], [ya ; yb]) ;
-set(h,'linewidth', 1, 'color', 'b') ;
+set(h,'linewidth', 1, 'color', 'g') ;
 f1plot=f1;
 f2plot=f2;
 vl_plotframe(f1plot(:,match(1,:)));
@@ -182,7 +182,7 @@ for k=1:60
     
     for i = 1:length(xyzmatchedfeatures1)
         D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
-        if (D(i)<0.50)
+        if (D(i)<0.050)
             inliers=inliers+1;
             
             vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
@@ -208,42 +208,16 @@ aux2 = vector2_inliers(:,:,index);
 A_ = aux1(any(aux1,2),:)';
 B_ = aux2(any(aux2,2),:)';
 
-niu = M_transf1*[A_;ones(1,size(A_,2))];
-u1=round(niu(1,:)./niu(3,:));
-v1=round(niu(2,:)./niu(3,:));
-
-[tf, index]=ismember(P_xyz_1',A_','rows');
-f=find(tf);
-ff=P_xyz_1(:,find(tf));
-figure(1);
-hold on; plot(u1, v1, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
-
-niu = M_transf2*[B_;ones(1,size(B_,2))];
-u2=round(niu(1,:)./niu(3,:));
-v2=round(niu(2,:)./niu(3,:));
-
-[tf, index]=ismember(P_xyz_2',B_','rows');
-f=find(tf);
-ff=P_xyz_2(:,find(tf));
-figure(2);
-hold on; plot(u2, v2, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
-
-figure(3);
-hold on ;
-h = line([u1 ; u2 + size(im1,2)], [v1 ; v2]) ;
-set(h,'linewidth', 1, 'color', 'r') ;
-f1plot=f1;
-f2plot=f2;
-vl_plotframe(f1plot(:,match(1,:)));
-f2plot(1,:) = f2plot(1,:) + size(im1,2) ;
-vl_plotframe(f2plot(:,match(2,:)));
-axis image off ;
+%Draw inliers and lines between them
+draw_inliers(M_transf1, M_transf2, A_, B_, im1descriptors, im2descriptors, matching, im1, f1, f2, match);
 
 %Get new model
 [R_, T_] = calcR_T_svd(A_, B_);
 R_
 T_
 
+
+%Get Pointcloud
 P_xyz_1_em_2 = R_*P_xyz_1 + repmat(T_,1,480*640);
 
 x = [];
@@ -268,5 +242,6 @@ b=[b;cl(3,:)];
 pxyz = [x;y;z];
 prgb = [r;g;b]';
 
+%Plot pointcloud
 pc=pointCloud(pxyz','Color',uint8(prgb));
-figure(4);showPointCloud(pc);
+pointCloud=figure(4);showPointCloud(pc);
