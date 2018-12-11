@@ -5,19 +5,27 @@ function [im_calib, im_calib_xyz, P_calib, P] = depth_to_rgb(im,depth_array)
 %   depth_array = 480x640 uint16
 %
 % output
-%   im_calib = calibrated rbg image
+%   im_calib = calibrated rbg image 
+%              480x640x3 (x,y,rgb) image coordinates
 %   im_calib_xyz = image vector of rgb to use in pointCloud reconstruction
-%   P_calib = calibrated depth.array
+%                  307200x3 double (r,g,b)
+%   P_calib = calibrated depth.array (should be equal to depth_array)
+%             480x640 uint16 (x,y)->depth image coordinates
 %   P = image vector of depth to use in pointCloud reconstruction
+%       3x307200 double (x,y,z) World coordinates
 
-load CalibrationData.mat
-Kd=Depth_cam.K;
+load cameraparametersAsus.mat
+% cam_params.Kdepth  - the 3x3 matrix for the intrinsic parameters for depth
+% cam_params.Krgb - the 3x3 matrix for the intrinsic parameters for rgb
+% cam_params.R - the Rotation matrix from depth to RGB (extrinsic params)
+% cam_params.T - The translation from depth to RGB 
+
 Z=double(depth_array(:)')/1000; %millimeters to meters
 
 % Compute correspondence between two imagens in 5 lines of code
 [v, u]=ind2sub([480 640],(1:480*640)); %compute u and v for every pixel
-P=inv(Kd)*[Z.*u ;Z.*v;Z];%world to depth_cam
-niu=RGB_cam.K*[R_d_to_rgb T_d_to_rgb]*[P;ones(1,640*480)]; %depth_cam to rgb_cam
+P=inv(cam_params.Kdepth)*[Z.*u ;Z.*v;Z]; %depth_cam to world
+niu=cam_params.Krgb*[cam_params.R cam_params.T]*[P;ones(1,640*480)]; %depth_cam to rgb_cam
 u2=round(niu(1,:)./niu(3,:));
 v2=round(niu(2,:)./niu(3,:));
 
