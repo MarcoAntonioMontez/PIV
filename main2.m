@@ -10,8 +10,8 @@ im1d = load('lab1/depth1_11.mat');
 im2d = load('lab1/depth2_11.mat');
 
 %Calibration depth/rgp
-[im1, im1_xyz, P_1, P_xyz_1] = depth_to_rgb(im1_,im1d.depth_array);
-[im2, im2_xyz, P_2, P_xyz_2] = depth_to_rgb(im2_,im2d.depth_array);
+[im1, im1_xyz, P_xyz_1] = depth_to_rgb(im1_,im1d.depth_array);
+[im2, im2_xyz, P_xyz_2] = depth_to_rgb(im2_,im2d.depth_array);
 
 im1d.depth_array = double(im1d.depth_array)/1000;
 im2d.depth_array = double(im2d.depth_array)/1000;
@@ -46,7 +46,7 @@ figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.5); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
@@ -157,29 +157,8 @@ for k=1:60
     A = [xyzpair1(1,:)', xyzpair2(1,:)', xyzpair3(1,:)', xyzpair4(1,:)'];
     B = [xyzpair1(2,:)', xyzpair2(2,:)', xyzpair3(2,:)', xyzpair4(2,:)'];
     
-    %Values to calculate centroids
-    av1=mean(A');
-    av2=mean(B');
-   
-    
-    %Calc centroids
-    Centroid1 = av1';
-    Centroid2 = av2';
-    
-    %Subtract centroids from A,B
-    A_menos_centroid = A - horzcat(Centroid1, Centroid1, Centroid1, Centroid1);
-    B_menos_centroid = B - horzcat(Centroid2, Centroid2, Centroid2, Centroid2);
-    
-%     [d,Z,tr] = procrustes(B_menos_centroid', A_menos_centroid', 'reflection', false);
-%     R=tr.T;
-%     T=Centroid2-R*Centroid1;
-    
-    M1 = A_menos_centroid*B_menos_centroid';
-    [U,S,V] = svd(M1);
-    Mdiagonal = ones(size(U',1),1);
-    Mdiagonal(size(U',1),1) = det(V*U');
-    R = V * (diag(Mdiagonal)) * U';
-    T=Centroid2-R*Centroid1;
+    %Calc model
+    [R, T] = calcR_T_svd(A, B); 
 
     %Calculate im2 points from im1 points and calculated model 
     inliers=0;
@@ -200,7 +179,7 @@ for k=1:60
     
     for i = 1:length(xyzmatchedfeatures1)
         D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
-        if (D(i)<0.50)
+        if (D(i)<0.150)
             inliers=inliers+1;
           
             vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
@@ -218,30 +197,19 @@ end
 Rsaved=Rsave(:,:,index);
 Tsaved=Tsave(:,:,index);
 
+%Inliers of best ransac iteration
 aux1 = vector1_inliers(:,:,index);
 aux2 = vector2_inliers(:,:,index);
 
+%Remove zeros
 A_ = aux1(any(aux1,2),:)';
 B_ = aux2(any(aux2,2),:)';
-av1_=mean(A_');
-av2_=mean(B_');
 
-%Calc centroids
-Centroid1_ = av1_';
-Centroid2_ = av2_';
-
-%Subtract centroids from A,B
-A_menos_centroid_ = A_ - repmat(Centroid1_,1,Max);
-B_menos_centroid_ = B_ - repmat(Centroid2_,1,Max);
 
 %Get new model
-M1 = A_menos_centroid_*B_menos_centroid_';
-[U,S,V] = svd(M1);
-Mdiagonal = ones(size(U',1),1);
-Mdiagonal(size(U',1),1) = det(V*U');
-%Get R anD t
-R_ = V * (diag(Mdiagonal)) * U'
-T_=Centroid2_-R_*Centroid1_
+[R_, T_] = calcR_T_svd(A_, B_);
+R_
+T_
 
 P_xyz_1_em_2 = R_*P_xyz_1 + repmat(T_,1,480*640);
 
