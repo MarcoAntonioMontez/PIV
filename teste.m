@@ -16,12 +16,20 @@
 % image(img(1:100,1:100,:))
 bins=64;
 
-i=75;
+i=frame_num;
 rgbImage=imgs(:,:,:,i);
+depthImage=imgsd(:,:,i)*1000;
 figure()
 image(rgbImage)
+figure()
+image(depthImage)
 
-images = CalcHistogram( connected2, nclasses, rgbImage);
+[im_rgb_calib, im_rgb_vector_calib, P_xyz, M_transf] = depth_to_rgb(rgbImage,depthImage);
+
+figure()
+image(im_rgb_calib)
+
+images = CalcHistogram( connected2, nclasses, im_rgb_calib);
 
 for n=1:length(images)
     figure()
