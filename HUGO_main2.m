@@ -170,7 +170,8 @@ for k=1:60
     B_menos_centroid = B - horzcat(Centroid2, Centroid2, Centroid2, Centroid2);
     
 %     [d,Z,tr] = procrustes(B_menos_centroid', A_menos_centroid', 'reflection', false);
-%     T=Centroid2-tr.T*Centroid1;
+%     R=tr.T;
+%     T=Centroid2-R*Centroid1;
     
     M1 = A_menos_centroid*B_menos_centroid';
     [U,S,V] = svd(M1);
@@ -183,7 +184,6 @@ for k=1:60
     inliers=0;
     
     %B=R*A+T
-%     R=tr.T;
     B_model = R*xyzmatchedfeatures1';
     for i = 1:length(xyzmatchedfeatures1)
         B_model(:,i)=B_model(:,i)+T(:);
