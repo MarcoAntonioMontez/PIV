@@ -1,4 +1,4 @@
-function [im_rgb_calib, im_rgb_vector_calib, P_xyz] = depth_to_rgb(im,depth_array)
+function [im_rgb_calib, im_rgb_vector_calib, P_xyz, M_transf] = depth_to_rgb(im,depth_array)
 %DEPTH_TO_RGB
 % argmuments
 %   im = imread(image) 480x640x3 uint8
@@ -24,7 +24,8 @@ Z=double(depth_array(:)')/1000; %millimeters to meters
 % Compute correspondence between two imagens in 5 lines of code
 [v, u]=ind2sub([480 640],(1:480*640)); %compute u and v for every pixel
 P_xyz=inv(cam_params.Kdepth)*[Z.*u ;Z.*v;Z]; %depth_cam to world
-niu=cam_params.Krgb*[cam_params.R cam_params.T]*[P_xyz;ones(1,640*480)]; %depth_cam in world to rgb_cam
+M_transf = cam_params.Krgb*[cam_params.R cam_params.T]; %transformation matrix depth_cam in world to rgb_cam
+niu= M_transf*[P_xyz;ones(1,640*480)]; %depth_cam in world to rgb_cam
 u2=round(niu(1,:)./niu(3,:));
 v2=round(niu(2,:)./niu(3,:));
 
