@@ -8,7 +8,7 @@ img_folder ='filinha';
 %%
 % Bg subtraction for depth (try with gray too)
 
-minimum_pixels = 1000;
+minimum_pixels = 1500;
 se = strel('disk',6);
 su = strel('disk',4);
 
@@ -23,13 +23,14 @@ old_objects=[];
 new_objects=[];
 histograms=[];
 
-cost_treshold=60;
+cost_treshold=200;
+min_frames_object_appears=10;
 
 
 figure()
 close all
 
-for frame_num=1:100%size(imgs,3)
+for frame_num=30:size(imgs,4)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -66,7 +67,7 @@ for frame_num=1:100%size(imgs,3)
     
     [Gmag, Gdir] = imgradient(imgsd(:,:,frame_num),'prewitt');
     
-    logic_grad = Gmag > .2;
+    logic_grad = Gmag > .4;
     
     if(debugg_on)
         figure()
@@ -230,6 +231,15 @@ for frame_num=1:100%size(imgs,3)
     
     %%
 end
+
+%Reject objects that only appear in less than min_frames_object_appears
+for i=length(objects):-1:1
+     if length(objects(i).frames_tracked)<min_frames_object_appears
+         objects(i)=[];
+     end
+end
+
+
 objects.frames_tracked
 
 %%

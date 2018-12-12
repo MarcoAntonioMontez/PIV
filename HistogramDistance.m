@@ -1,34 +1,32 @@
-function [ emv_distance ] = HistogramDistance( histA, histB )
+function [ emv_distance ] = HistogramDistance( histA, histB,lambda )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-rho=50;
 
-
-hist_red_A = histA.hist_red';
-hist_red_B = histB.hist_red';
+hist_h_A = histA.hist_h';
+hist_h_B = histB.hist_h';
 w1 = 1;
 w2 = 1;
-[x fval] = emd(hist_red_A, hist_red_B, w1, w2, @gdf);
-red_dist = fval;
+[x fval] = emd(hist_h_A, hist_h_B, w1, w2, @gdf);
+h_dist = fval;
 
-hist_green_A = histA.hist_green';
-hist_green_B = histB.hist_green';
+hist_s_A = histA.hist_s';
+hist_s_B = histB.hist_s';
 w1 = 1;
 w2 = 1;
-[x fval] = emd(hist_green_A, hist_green_B, w1, w2, @gdf);
-green_dist = fval;
+[x fval] = emd(hist_s_A, hist_s_B, w1, w2, @gdf);
+s_dist = fval;
 
-hist_blue_A = histA.hist_blue';
-hist_blue_B = histB.hist_blue';
+hist_v_A = histA.hist_v';
+hist_v_B = histB.hist_v';
 w1 = 1;
 w2 = 1;
-[x fval] = emd(hist_blue_A, hist_blue_B, w1, w2, @gdf);
-blue_dist = fval;
+[x fval] = emd(hist_v_A, hist_v_B, w1, w2, @gdf);
+v_dist = fval;
 
 % emv_distance(1)=red_dist*rho;
 % emv_distance(2)=green_dist*rho;
 % emv_distance(3)=blue_dist*rho;
 
-emv_distance=(red_dist+green_dist+blue_dist)*rho;
+emv_distance=((h_dist)^2)*lambda;
 end
 

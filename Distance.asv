@@ -4,14 +4,15 @@ function [ distance ] = Distance(A,B,rho)
 
     acum=0;
     for i=1:8
-        x=A.X(i)-B.X(i);
-        y=A.Y(i)-B.Y(i);
-        z=A.Z(i)-A.Z(i);
+        x=A(i)-
+        y
+        z
        
-        acum= x^2+y^2+z^2;      
+        
     end
 
-    distance = rho * acum;
-     
+    distance = rho * norm(A-B,2)^2;
+    
+    
 end
 
