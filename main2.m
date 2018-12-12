@@ -3,11 +3,14 @@
 close all; clear;
 format compact
 
-im1_=imread('data_rgb/rgb_image1_6.png');
-im2_=imread('data_rgb/rgb_image2_6.png');
+imgdirectory='data_rgb';
+img='6';
 
-im1d = load('data_rgb/depth1_6.mat');
-im2d = load('data_rgb/depth2_6.mat');
+im1_=imread(strcat(imgdirectory,'/rgb_image1_',img,'.png'));
+im2_=imread(strcat(imgdirectory,'/rgb_image2_',img,'.png'));
+
+im1d = load(strcat(imgdirectory,'/depth1_',img,'.mat'));
+im2d = load(strcat(imgdirectory,'/depth2_',img,'.mat'));
 
 %Calibration depth/rgp
 [im1, im1_xyz, P_xyz_1, M_transf1] = depth_to_rgb(im1_,im1d.depth_array);
@@ -34,6 +37,8 @@ im2=rgb2gray(im2);
 %Get Features
 [f1, d1] = vl_sift(single(im1));
 [f2, d2] = vl_sift(single(im2));
+f1=round(f1);
+f2=round(f2);
 % f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
