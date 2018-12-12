@@ -29,7 +29,7 @@ cost_treshold=60;
 figure()
 close all
 
-for frame_num=1:100%size(imgs,3)
+for frame_num=75:80%size(imgs,3)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -66,7 +66,7 @@ for frame_num=1:100%size(imgs,3)
     
     [Gmag, Gdir] = imgradient(imgsd(:,:,frame_num),'prewitt');
     
-    logic_grad = Gmag > .2;
+    logic_grad = Gmag > .4;
     
     if(debugg_on)
         figure()
