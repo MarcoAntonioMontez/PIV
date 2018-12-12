@@ -24,7 +24,6 @@ new_objects=[];
 histograms=[];
 
 cost_treshold=200;
-min_frames_object_appears=10;
 
 
 figure()
@@ -231,12 +230,9 @@ for frame_num=30:size(imgs,4)
     
     %%
 end
-
-%Reject objects that only appear in less than min_frames_object_appears
-for i=length(objects):-1:1
-     if length(objects(i).frames_tracked)<min_frames_object_appears
-         objects(i)=[];
-     end
+for i=1:length(objects)
+   objetcs([objects.frames_tracked]>500) = [];
+    
 end
 
 

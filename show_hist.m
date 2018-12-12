@@ -5,13 +5,13 @@ for n=1:length(histograms)
     figure()
     hold all
     subplot(2,2,1);
-    bar(histograms(n).hist_red)
+    bar(histograms(n).hist_h)
 
     subplot(2,2,2);
-    bar(histograms(n).hist_green)
+    bar(histograms(n).hist_s)
 
     subplot(2,2,3);
-    bar(histograms(n).hist_blue)
+    bar(histograms(n).hist_v)
 
     subplot(2,2,4);
     image(histograms(n).img)
