@@ -3,11 +3,14 @@
 close all; clear;
 format compact
 
-im1_=imread('lab1/rgb_image1_11.png');
-im2_=imread('lab1/rgb_image2_11.png');
+imgdirectory='lab1';
+img='6';
 
-im1d = load('lab1/depth1_11.mat');
-im2d = load('lab1/depth2_11.mat');
+im1_=imread(strcat(imgdirectory,'/rgb_image1_',img,'.png'));
+im2_=imread(strcat(imgdirectory,'/rgb_image2_',img,'.png'));
+
+im1d = load(strcat(imgdirectory,'/depth1_',img,'.mat'));
+im2d = load(strcat(imgdirectory,'/depth2_',img,'.mat'));
 
 %Calibration depth/rgp
 [im1, im1_xyz, P_xyz_1, M_transf1] = depth_to_rgb(im1_,im1d.depth_array);
@@ -34,6 +37,8 @@ im2=rgb2gray(im2);
 %Get Features
 [f1, d1] = vl_sift(single(im1));
 [f2, d2] = vl_sift(single(im2));
+f1=fix(f1);
+f2=fix(f2);
 % f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
@@ -46,7 +51,7 @@ im2descriptors=figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.5); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
@@ -61,7 +66,7 @@ yb = f2(2,match(2,:)) ;
 
 hold on ;
 h = line([xa ; xb], [ya ; yb]) ;
-set(h,'linewidth', 1, 'color', 'b') ;
+set(h,'linewidth', 1, 'color', 'g') ;
 f1plot=f1;
 f2plot=f2;
 vl_plotframe(f1plot(:,match(1,:)));
@@ -171,6 +176,7 @@ for k=1:60
     for i = 1:length(xyzmatchedfeatures1)
         B_model(:,i)=B_model(:,i)+T(:);
     end
+    
 
     %Calculate distances between matched and calculated points
     %Check number of inliers for that transformation
@@ -180,9 +186,12 @@ for k=1:60
 %     D = abs(B_model'-xyzmatchedfeatures2).^2;
 %     error = sum(D(:))/numel(B_model');
     
+    B_im = M_transf2 * [xyzmatchedfeatures2;ones(1, length(xyzmatchedfeatures2))];
+    B_model_im = M_transf2 * [B_model;ones(1, length(B_model))];
+    
     for i = 1:length(xyzmatchedfeatures1)
-        D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
-        if (D(i)<0.50)
+        D(i)=norm(B_model_im(:,i)'-B_im(i,:)).^2;
+        if (D(i)<0.250)
             inliers=inliers+1;
             
             vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
@@ -208,42 +217,16 @@ aux2 = vector2_inliers(:,:,index);
 A_ = aux1(any(aux1,2),:)';
 B_ = aux2(any(aux2,2),:)';
 
-niu = M_transf1*[A_;ones(1,size(A_,2))];
-u1=round(niu(1,:)./niu(3,:));
-v1=round(niu(2,:)./niu(3,:));
-
-[tf, index]=ismember(P_xyz_1',A_','rows');
-f=find(tf);
-ff=P_xyz_1(:,find(tf));
-figure(im1descriptors);
-hold on; plot(u1, v1, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
-
-niu = M_transf2*[B_;ones(1,size(B_,2))];
-u2=round(niu(1,:)./niu(3,:));
-v2=round(niu(2,:)./niu(3,:));
-
-[tf, index]=ismember(P_xyz_2',B_','rows');
-f=find(tf);
-ff=P_xyz_2(:,find(tf));
-figure(im2descr);
-hold on; plot(u2, v2, 'r*', 'LineWidth', 2, 'MarkerSize', 1);
-
-figure(3);
-hold on ;
-h = line([u1 ; u2 + size(im1,2)], [v1 ; v2]) ;
-set(h,'linewidth', 1, 'color', 'r') ;
-f1plot=f1;
-f2plot=f2;
-vl_plotframe(f1plot(:,match(1,:)));
-f2plot(1,:) = f2plot(1,:) + size(im1,2) ;
-vl_plotframe(f2plot(:,match(2,:)));
-axis image off ;
+%Draw inliers and lines between them
+draw_inliers(M_transf1, M_transf2, A_, B_, im1descriptors, im2descriptors, matching, im1, f1, f2, match);
 
 %Get new model
 [R_, T_] = calcR_T_svd(A_, B_);
 R_
 T_
 
+
+%Get Pointcloud
 P_xyz_1_em_2 = R_*P_xyz_1 + repmat(T_,1,480*640);
 
 x = [];
@@ -268,5 +251,6 @@ b=[b;cl(3,:)];
 pxyz = [x;y;z];
 prgb = [r;g;b]';
 
+%Plot pointcloud
 pc=pointCloud(pxyz','Color',uint8(prgb));
-figure(4);showPointCloud(pc);
+pointCloud=figure(4);showPointCloud(pc);
