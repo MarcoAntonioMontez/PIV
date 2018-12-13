@@ -30,7 +30,7 @@ min_frames_object_appears=10;
 figure()
 close all
 
-for frame_num=30:size(imgs,4)
+for frame_num=40:50size(imgs,4)
     %%
     %dar set ao i em debug_on
     %i=60
@@ -41,7 +41,9 @@ for frame_num=30:size(imgs,4)
     % i=num_da_foto
     %E corram só a section dentro do for depois do '%%'
     
-    debugg_on=0;
+    
+    
+    debugg_on=1;
     show_gif_or_images=1; %Gif =0, images=1
      
     if(debugg_on)
@@ -233,11 +235,11 @@ for frame_num=30:size(imgs,4)
 end
 
 %Reject objects that only appear in less than min_frames_object_appears
-for i=length(objects):-1:1
-     if length(objects(i).frames_tracked)<min_frames_object_appears
-         objects(i)=[];
-     end
-end
+% for i=length(objects):-1:1
+%      if length(objects(i).frames_tracked)<min_frames_object_appears
+%          objects(i)=[];
+%      end
+% end
 
 
 objects.frames_tracked
