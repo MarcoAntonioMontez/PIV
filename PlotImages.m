@@ -4,9 +4,9 @@ function [  ] = PlotImages( object,imgs )
 
 for k=1:length(object.frames_tracked)
     currentFrame=object.frames_tracked(k);
-    X=object.X(:,k);
-    Y=object.Y(:,k);
-    Z=object.Z(:,k);
+    X=object.X_cam(:,k);
+    Y=object.Y_cam(:,k);
+    Z=object.Z_cam(:,k);
     center=CenterCube([X,Y,Z]);
     
     
@@ -16,7 +16,9 @@ for k=1:length(object.frames_tracked)
     image=rot90(imgs(:,:,:,currentFrame),2);
     imagesc(fliplr(image));
     set(gca,'YDir','normal')
-    plot(center(2),480-center(1),'*','MarkerSize',10);
+    plot(center(2),480-center(1),'*','MarkerSize',20);
+    str = sprintf('Image nº %d ', currentFrame);
+    title(str)
     hold off
     
 end

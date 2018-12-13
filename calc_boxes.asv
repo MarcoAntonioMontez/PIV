@@ -19,8 +19,8 @@ for i = 1:num_classes
     %Transforms cam coordinates to world coordinates
     connected_wc=depth_to_world(connected_depth_image);
     
-    indices = find(connected_wc(:,3)==0);
-    connected_wc(indices,:) = [];
+   indices = find(connected_wc(:,3)==0);
+    X(indices,:) = [];
 
     
     x=connected_wc(:,1);
@@ -32,6 +32,9 @@ for i = 1:num_classes
 %     for n_point=1:size(x,1)
 %         z(n_point)=depth_matrix(x(n_point),y(n_point));      
 %     end
+    
+    
+    
     
     max_x=max(x);
     max_y=max(y);
