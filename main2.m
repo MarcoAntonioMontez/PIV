@@ -3,7 +3,7 @@
 close all; clear;
 format compact
 
-imgdirectory='data_rgb';
+imgdirectory='lab1';
 img='6';
 
 im1_=imread(strcat(imgdirectory,'/rgb_image1_',img,'.png'));
@@ -37,8 +37,8 @@ im2=rgb2gray(im2);
 %Get Features
 [f1, d1] = vl_sift(single(im1));
 [f2, d2] = vl_sift(single(im2));
-f1=round(f1);
-f2=round(f2);
+f1=fix(f1);
+f2=fix(f2);
 % f = [X;Y;S;TH], where X,Y is the (fractional) center of the frame, 
 %                 S is the scale and TH is the orientation (in radians).
 % d = 128-dimensional vector of class UINT8.
@@ -51,7 +51,7 @@ im2descriptors=figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.8); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.3); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
@@ -120,9 +120,12 @@ Tsave=zeros(3,1,30);
 inlierssave=zeros(1,30);
 
 for k=1:60
+ 
+    A = zeros(3,4);
+    B = zeros(3,4);
+    while rank(A, 0.6) < 3 && rank(B, 0.6) < 3
     %1st random pair
     xyzpair1 = zeros(2,3);
-
     while(ismember(0, xyzpair1)==1)
         random1 = round(rand*length(xyzmatchedfeatures2));
         if random1==0
@@ -165,6 +168,8 @@ for k=1:60
     A = [xyzpair1(1,:)', xyzpair2(1,:)', xyzpair3(1,:)', xyzpair4(1,:)'];
     B = [xyzpair1(2,:)', xyzpair2(2,:)', xyzpair3(2,:)', xyzpair4(2,:)'];
     
+    end
+    
     %Calc model
     [R, T] = calcR_T_svd(A, B); 
 
@@ -176,6 +181,7 @@ for k=1:60
     for i = 1:length(xyzmatchedfeatures1)
         B_model(:,i)=B_model(:,i)+T(:);
     end
+    
 
     %Calculate distances between matched and calculated points
     %Check number of inliers for that transformation
@@ -186,8 +192,8 @@ for k=1:60
 %     error = sum(D(:))/numel(B_model');
     
     for i = 1:length(xyzmatchedfeatures1)
-        D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:));
-        if (D(i)<0.050)
+        D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:)).^2;
+        if (D(i)<0.10)
             inliers=inliers+1;
             
             vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
