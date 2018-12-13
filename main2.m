@@ -51,7 +51,7 @@ im2descriptors=figure(2);
 imshow(im2); hold on; plot(f2(1,:), f2(2,:), '*'); hold off;
 
 %Match Features
-[match, sc] = vl_ubcmatch(d1, d2, 1.3); %increase third parameter to increase threshold
+[match, sc] = vl_ubcmatch(d1, d2, 1.5); %increase third parameter to increase threshold
 % match contains the indexes in d1,d2 of the paired points
 % sc is the squared Euclidean distance between the matches (score), 
 %    the lower, the better
@@ -83,6 +83,7 @@ teste1=zeros(length(match), 3);
 teste2=zeros(length(match), 3);
 
 for i = 1:length(match) 
+    %is this wrong? shouldn't it be not corrected?
     teste1(i,:) = im1xyz( round(f1(2,match(1,i))), round(f1(1,match(1,i))),:);
     teste2(i,:) = im2xyz( round(f2(2,match(2,i))), round(f2(1,match(2,i))),:);
     
@@ -193,7 +194,7 @@ for k=1:60
     
     for i = 1:length(xyzmatchedfeatures1)
         D(i)=norm(B_model(:,i)'-xyzmatchedfeatures2(i,:)).^2;
-        if (D(i)<0.10)
+        if (D(i)<0.30)
             inliers=inliers+1;
             
             vector1_inliers(i,:,k)=xyzmatchedfeatures1(i,:);
