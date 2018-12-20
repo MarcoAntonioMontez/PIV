@@ -12,7 +12,7 @@ for i=1:length(d), %for every image
     % imgs(x,y,i) corresponds to pixel (x,y) of image i
     load(dd(i).name);
     imgsd(:,:,i)=double(depth_array)/1000; 
-    [im_rgb_calib, im_rgb_vector_calib, P_xyz, M_transf] = depth_to_rgb(imgs(:,:,:,i),double(depth_array));
+    [im_rgb_calib, ~, ~, ~] = depth_to_rgb(imgs(:,:,:,i),double(depth_array));
     imgs(:,:,:,i)=im_rgb_calib;
     
     % imgsd stores the depth measures of each image
