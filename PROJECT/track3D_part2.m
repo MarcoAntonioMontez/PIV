@@ -1,33 +1,24 @@
-function [ objects, cam2toW ] = track3D_part2(img_name_seq1, img_name_seq2, cam_params)
-clc;
+function [ objects, cam2toW ] = track3D_part2( img_name_seq1, img_name_seq2, cam_params)
 addpath('P_all_folder','Part2_folder')
 run('vlfeat-0.9.21/toolbox/vl_setup')
-%vl_version verbose
+vl_version verbose
 %Draw plots
 plots = 1;
 
 %UBC Match:
-match_thresh =1.5;
+match_thresh = 1.5;
 
 % RANSAC:
 %Set number of iterations
 niter = 100;
 
-%Coplanar check. minimum threshold of eigenvalues: the greater the value,
-%the harder it is to find a combination that obeys this
-rank_thresh=0.001;
-
 %Set error treshold for inliers
-error_tresh = 0.35;
+error_tresh = 0.2;
 
-%Load RGB images. Inverted because cam 1 should be world.
-image1=imread(img_name_seq1(1).rgb);
-image2=imread(img_name_seq2(1).rgb);
-% image1=imread('lab1/rgb_image1_1.png');
-% image2=imread('lab1/rgb_image2_1.png');
-
-%Load camera parameters
-%load cameraparametersAsus.mat
+[image1, image1_depth] = load_images(img_name_seq1);
+[image2, image2_depth] = load_images(img_name_seq2);
+[image1, xyz1_array, rgbd1] = align_depth_to_rgb(image1_depth,image1,cam_params);
+[image2, xyz2_array, rgbd2] = align_depth_to_rgb(image2_depth,image2,cam_params); 
 
 if(plots)
     figure1 = figure();
@@ -40,18 +31,8 @@ end
 image1_gray=rgb2gray(image1);
 image2_gray=rgb2gray(image2);
 
-%Load depth for the respective images
-image1_depth = load(img_name_seq1(1).depth);
-image2_depth = load(img_name_seq2(1).depth);
-% image1_depth = load('lab1/depth1_1.mat');
-% image2_depth = load('lab1/depth2_1.mat');
-
-depth_array1 = reshape(image1_depth.depth_array, [480*640, 1]);
-depth_array2 = reshape(image2_depth.depth_array, [480*640, 1]);
-
-%Get world coordinates for depth images in a 480*640 array
-xyz1_array = get_xyzasus(depth_array1, size(image1_depth.depth_array), (1:640*480)', cam_params.Kdepth, 1, 0);
-xyz2_array = get_xyzasus(depth_array2, size(image2_depth.depth_array), (1:640*480)', cam_params.Kdepth, 1, 0);
+% depth_array1 = reshape(image1_depth, [480*640, 1]);
+% depth_array2 = reshape(image2_depth, [480*640, 1]);
 
 %Re-shape array into 3 [480x640] matrices:
 % - The 1st gives access to x values in world frame
@@ -60,16 +41,12 @@ xyz2_array = get_xyzasus(depth_array2, size(image2_depth.depth_array), (1:640*48
 xyz1 = reshape(xyz1_array, [480, 640, 3]);
 xyz2 = reshape(xyz2_array, [480, 640, 3]);
 
-% if(plots)
-%     figure_xyz1=figure(4);
-%     showPointCloud(xyz1);
-%     figure_xyz2=figure(5);
-%     showPointCloud(xyz2);
-% end
-
-%Get RGB coordinates for world frame
-rgbd1 = get_rgbd(xyz1_array, image1, cam_params.R, cam_params.T, cam_params.Krgb);
-rgbd2 = get_rgbd(xyz2_array, image2, cam_params.R, cam_params.T, cam_params.Krgb);
+if(plots)
+    figure_xyz1=figure(4);
+    showPointCloud(xyz1);
+    figure_xyz2=figure(5);
+    showPointCloud(xyz2);
+end
 
 %Get image descriptors and positions
 [f1, d1] = vl_sift(single(image1_gray));
@@ -77,7 +54,7 @@ rgbd2 = get_rgbd(xyz2_array, image2, cam_params.R, cam_params.T, cam_params.Krgb
 
 %Match descriptors and score this match from both images with last param.
 %being maximum error between matches
-[match, sc] = vl_ubcmatch(d1, d2, match_thresh);
+[match, ~] = vl_ubcmatch(d1, d2, match_thresh);
 
 %Plot the matches and draw lines between them
 if(plots)
@@ -121,37 +98,33 @@ vector2_inliers = zeros(n_valid_matches, 3, niter);
 
 %Main RANSAC cycle
 for i=0:niter-1
-    image1_4points(:) = 0;
-    image2_4points(:) = 0;
-    xyz1_4points(:) = 0;
-    xyz2_4points(:) = 0;
-    while (rank(xyz1_4points', rank_thresh) < 3 && rank(xyz2_4points', rank_thresh) < 3)
+    
     %Get 4 random matched points for each iteration
-        for j=1:4   
-            image1_4points(j) = 0;
-            image2_4points(j) = 0;
-            xyz1_4points(j) = 0;
-            xyz2_4points(j) = 0;
-
-           %Guarantee that these matches are valid, unique and non-colinear
-            while ismember(0,  xyz1_4points(j)) || ismember(0,  xyz2_4points(j)) || length(unique(xyz2_4points(1:j)))~=j% || (rank(xyz1_4points(1:j, :), rank_thresh) < j-1 && rank(xyz2_4points(1:j,:), rank_thresh) < j-1)
-
-                    random_match = match(:, randperm(length(match), 1));
-
-                    image1_4points(j, :)=f1(1:2 ,random_match(1));
-                    image2_4points(j, :)=f2(1:2, random_match(2));
-                    image1_4points(j, :) = fix(image1_4points(j, :));
-                    image2_4points(j, :) = fix(image2_4points(j, :));
-
-                    image1_4points(find(image1_4points(j)) == 0) = 1;
-                    image2_4points(find(image2_4points(j)) == 0) = 1;
-
-                    %Get matched points coordinates in 3D
-                    xyz1_4points(j, :) = xyz1(image1_4points(j, 2), image1_4points(j, 1), :);
-                    xyz2_4points(j, :) = xyz2(image2_4points(j, 2), image2_4points(j, 1), :);
-            end
+    for j=1:4   
+        image1_4points(j) = 0;
+        image2_4points(j) = 0;
+        xyz1_4points(j) = 0;
+        xyz2_4points(j) = 0;
+        
+        %Guarantee that these matches are valid and unique
+        while ismember(0,  xyz1_4points(j)) || ismember(0,  xyz2_4points(j)) || length(unique(xyz2_4points(1:j)))~=j
+                      
+                random_match = match(:, randperm(length(match), 1));
+                
+                image1_4points(j, :)=f1(1:2 ,random_match(1));
+                image2_4points(j, :)=f2(1:2, random_match(2));
+                image1_4points(j, :) = fix(image1_4points(j, :));
+                image2_4points(j, :) = fix(image2_4points(j, :));
+                
+                image1_4points(find(image1_4points(j)) == 0) = 1;
+                image2_4points(find(image2_4points(j)) == 0) = 1;
+                
+                %Get matched points coordinates in 3D
+                xyz1_4points(j, :) = xyz1(image1_4points(j, 2), image1_4points(j, 1), :);
+                xyz2_4points(j, :) = xyz2(image2_4points(j, 2), image2_4points(j, 1), :);
         end
     end
+
     if(plots)
         %Save 2D points to plot them later
         plot_points1(i+1, :, 1)=image1_4points(:,1);        
@@ -161,15 +134,15 @@ for i=0:niter-1
     end
         
     %Calculate model for Rotation and Translation based on 4 random points
-    [R, T] = calcR_T_svd(xyz2_4points', xyz1_4points');
+    [R, T] = calcR_T_svd(xyz1_4points', xyz2_4points');
     
     %Use Rotation and Translation to project xyz1 into xyz2 frame
-    xyz21_matched=R*xyz2_matched' + repmat(T,1,n_valid_matches);
+    xyz12_matched=R*xyz1_matched' + repmat(T,1,n_valid_matches);
 
     %Check how many matches are considered inliers with estimated model
     for k = 1:n_valid_matches
         %Use Euclidian norm to calculate estimation error
-        err = norm(xyz21_matched(:,k)'-xyz1_matched(k,:));
+        err = norm(xyz12_matched(:,k)'-xyz2_matched(k,:));
         
         if (err<error_tresh)
             n_inliers(i+1) = n_inliers(i+1) + 1;
@@ -179,7 +152,7 @@ for i=0:niter-1
     end    
 end
 
-[Max, index] = max(n_inliers);
+[~, index] = max(n_inliers);
 
 if(plots)
     %Plot the 4 random point pairs used for estimating best projection model
@@ -217,22 +190,19 @@ final_inliers1( all(~final_inliers1,2), : ) = [];
 final_inliers2( all(~final_inliers2,2), : ) = [];
 
 %Estimate new model based on all inliers
-[final_R, final_T] = calcR_T_svd(final_inliers2', final_inliers1');
+[final_R, final_T] = calcR_T_svd(final_inliers1', final_inliers2');
 
 %Shift world frame of camera 1 to camera 2 world frame
-final_xyz21_array=final_R*xyz2_array' + repmat(final_T,1,length(xyz2_array));
+final_xyz12_array=final_R*xyz1_array' + repmat(final_T,1,length(xyz1_array));
 
 if(plots)
     %Plot point cloud merge
-    figure(7)        
-    showPointCloud(final_xyz21_array');
-    pc1=pointCloud(xyz1_array,'Color',reshape(rgbd1,[480*640 3]));
-    pc21 = pointCloud(final_xyz21_array','Color',reshape(rgbd2,[480*640 3]));
-    showPointCloud(pcdenoise(pcmerge(pc21,pc1,0.00001), 'Threshold', 0.5));
+    figure(7)
+    showPointCloud(final_xyz12_array');
+    pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
+    pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
+    showPointCloud(pcmerge(pc12,pc2,0.00001));
+    figure;
+    showPointCloud(pcdownsample(pcdenoise(pcmerge(pc12,pc2,0.00001)),'gridAverage',0.005));
     drawnow;
-end
-
-cam2toW.R=final_R;
-cam2toW.T=final_T;
-
 end
