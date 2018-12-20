@@ -1,13 +1,7 @@
-[objects, cam2toW] = track3D_part2( imgseq1, imgseq2,   cam_params)
+function [ objects, cam2toW ] = track3D_part2(img_name_seq1, img_name_seq2, cam_params)
+addpath('P_all_folder','Part2_folder')
 run('vlfeat-0.9.21/toolbox/vl_setup')
-% vl_version verbose
-close all; clear; clc;
-format compact
-
-%Select image directory and image id
-imgdirectory='lab1';
-img='6';
-
+vl_version verbose
 %Draw plots
 plots = 1;
 
@@ -25,9 +19,11 @@ rank_thresh=0.001;
 %Set error treshold for inliers
 error_tresh = 0.35;
 
-%Load RGB images
-image2=imread(strcat(imgdirectory,'/rgb_image1_',img,'.png'));
-image1=imread(strcat(imgdirectory,'/rgb_image2_',img,'.png'));
+%Load RGB images. Inverted because cam 1 should be world.
+% image1=imread(img_name_seq1(1).rgb);
+% image2=imread(img_name_seq2(1).rgb);
+image1=imread(img_name_seq1(1).rgb);
+image2=imread(img_name_seq2(1).rgb);
 
 if(plots)
     figure1 = figure();
@@ -41,14 +37,13 @@ image1_gray=rgb2gray(image1);
 image2_gray=rgb2gray(image2);
 
 %Load depth for the respective images
-image2_depth = load(strcat(imgdirectory,'/depth1_',img,'.mat'));
-image1_depth = load(strcat(imgdirectory,'/depth2_',img,'.mat'));
+% image1_depth = load(img_name_seq1(1).depth);
+% image2_depth = load(img_name_seq2(1).depth);
+image1_depth = load('lab1/rgb_image1_1');
+image2_depth = load('lab1/rgb_image2_1');
 
 depth_array1 = reshape(image1_depth.depth_array, [480*640, 1]);
 depth_array2 = reshape(image2_depth.depth_array, [480*640, 1]);
-
-%Load camera parameters
-load cameraparametersAsus.mat
 
 %Get world coordinates for depth images in a 480*640 array
 xyz1_array = get_xyzasus(depth_array1, size(image1_depth.depth_array), (1:640*480)', cam_params.Kdepth, 1, 0);
@@ -162,15 +157,15 @@ for i=0:niter-1
     end
         
     %Calculate model for Rotation and Translation based on 4 random points
-    [R, T] = calcR_T_svd(xyz1_4points', xyz2_4points');
+    [R, T] = calcR_T_svd(xyz2_4points', xyz1_4points');
     
     %Use Rotation and Translation to project xyz1 into xyz2 frame
-    xyz12_matched=R*xyz1_matched' + repmat(T,1,n_valid_matches);
+    xyz21_matched=R*xyz2_matched' + repmat(T,1,n_valid_matches);
 
     %Check how many matches are considered inliers with estimated model
     for k = 1:n_valid_matches
         %Use Euclidian norm to calculate estimation error
-        err = norm(xyz12_matched(:,k)'-xyz2_matched(k,:));
+        err = norm(xyz21_matched(:,k)'-xyz1_matched(k,:));
         
         if (err<error_tresh)
             n_inliers(i+1) = n_inliers(i+1) + 1;
@@ -218,17 +213,20 @@ final_inliers1( all(~final_inliers1,2), : ) = [];
 final_inliers2( all(~final_inliers2,2), : ) = [];
 
 %Estimate new model based on all inliers
-[final_R, final_T] = calcR_T_svd(final_inliers1', final_inliers2');
+[final_R, final_T] = calcR_T_svd(final_inliers2', final_inliers1');
 
 %Shift world frame of camera 1 to camera 2 world frame
-final_xyz12_array=final_R*xyz1_array' + repmat(final_T,1,length(xyz1_array));
+final_xyz21_array=final_R*xyz2_array' + repmat(final_T,1,length(xyz2_array));
 
 if(plots)
     %Plot point cloud merge
     figure(7)        
-    showPointCloud(final_xyz12_array');
-    pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
-    pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
-    showPointCloud(pcdenoise(pcmerge(pc12,pc2,0.00001), 'Threshold', 0.5));
+    showPointCloud(final_xyz21_array');
+    pc1=pointCloud(xyz1_array,'Color',reshape(rgbd1,[480*640 3]));
+    pc21 = pointCloud(final_xyz21_array','Color',reshape(rgbd2,[480*640 3]));
+    showPointCloud(pcdenoise(pcmerge(pc21,pc1,0.00001), 'Threshold', 0.5));
     drawnow;
 end
+
+cam2toW.R=final_R;
+cam2toW.T=final_T;
