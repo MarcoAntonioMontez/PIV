@@ -218,7 +218,8 @@ end
 %Creates hungarian matrix with CostFunction
 M=length(objects1);
 N=length(objects2);
-hungarian_matrix=zeros(N,M);
+hungarian_matrix1=zeros(N,M);
+hungarian_matrix2=zeros(M,N);
 
 for i=1:N %for each object
     for n=1:size(objects2(i).X,2) %for each frame it appears
@@ -229,18 +230,15 @@ for i=1:N %for each object
     end
 end
 
-for i=1:N
-   for j=1:M
-      hungarian_matrix(i,j) = CostFunction(new_objects(i), old_objects(j));
-   end
-end
-%Does hungarian matching
-matching = assignmentoptimal(hungarian_matrix);
+figure()
+showPointCloud(final_xyz12_array');
+pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
+pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
+showPointCloud(pcmerge(pc12,pc2,0.00001));
+PlotImages(objects2(2),image1,xyz1_array,rgbd1,'g')
+PlotImages(objects1(1),image1,xyz1_array,rgbd1,'r')
 
-%IF cost is bigger than cost_treshold than object is a new one
-for i=1:N
-   if min(hungarian_matrix(i,:)) > cost_treshold
-      matching(i)=0; 
-   end
+for k=1:size(img_name_seq1,2)
+    objs1 = objects1
+    objs2 = 
 end
-

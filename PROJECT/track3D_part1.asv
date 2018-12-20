@@ -246,7 +246,7 @@ for frame_num=1:size(imgs,4)
             end  
             
              objects = Concatenate(new_objects(i),objects);
-         end
+         end      
 %          objects =  Concatenate(new_objects(1),objects);     
     end 
         old_objects=new_objects;
@@ -265,12 +265,12 @@ for i=length(objects):-1:1
          objects(i)=[];
      end
 end
-% figure()
-% b1=[xyz_array(:,:,1)];
-% b2=reshape(rgbd(:,:,:,1),[480*640 3]);
-% pc=pointCloud(b1,'Color',b2);
-% showPointCloud(pc);
-% PlotImages(objects(2),imgs,xyz_array,rgbd)
-% objects.frames_tracked;
+figure()
+b1=[xyz_array(:,:,1)];
+b2=reshape(rgbd(:,:,:,1),[480*640 3]);
+pc=pointCloud(b1,'Color',b2);
+showPointCloud(pc);
+PlotImages(objects(1),imgs,xyz_array,rgbd)
+objects.frames_tracked;
 
 %%
