@@ -12,7 +12,7 @@ function [ histograms ] = CalcHistogram( connected, nclasses, rgbImage)
         end
 
         figure()
-        imagesc(img(:,:,j))
+        image(img(:,:,j))
         
         hsv=rgb2hsv(img(:,:,:));
 
