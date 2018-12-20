@@ -26,7 +26,7 @@ Z=double(depth_array(:)')/1000; %millimeters to meters
 [v, u]=ind2sub([480 640],(1:480*640)); %compute u and v for every pixel
 P_xyz=inv(cam_params.Kdepth)*[Z.*u ;Z.*v;Z]; %depth_cam to world
 M_transf = cam_params.Krgb*[cam_params.R cam_params.T]; %transformation matrix depth_cam in world to rgb_cam
-niu= M_transf*[P_xyz;ones(1,640*480)]; %depth_cam in world to rgb_cam
+niu= M_transf*[P_xyz;ones(1,640*480)]; %depth_cam in world to rgb_cam in world
 u2=round(niu(1,:)./niu(3,:));
 v2=round(niu(2,:)./niu(3,:));
 
