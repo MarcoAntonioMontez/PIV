@@ -15,9 +15,8 @@ niter = 100;
 %Set error treshold for inliers
 error_tresh = 0.2;
 
-%camera 1 should be world !!! That's why it's reversed...
-img_name_1 = img_name_seq2(1);%camera 1 should be world !!! That's why it's reversed...
-img_name_2 = img_name_seq1(1);%camera 1 should be world !!! That's why it's reversed...
+img_name_1 = img_name_seq1(15);
+img_name_2 = img_name_seq2(15);
 [image1, image1_depth] = load_images(img_name_1);
 [image2, image2_depth] = load_images(img_name_2);
 [image1, xyz1_array, rgbd1] = align_depth_to_rgb(image1_depth,image1,cam_params);
@@ -205,42 +204,12 @@ if(plots)
     pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
     pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
     showPointCloud(pcmerge(pc12,pc2,0.00001));
-%     figure;
-%     showPointCloud(pcdownsample(pcdenoise(pcmerge(pc12,pc2,0.00001)),'gridAverage',0.005));
+    figure;
+    showPointCloud(pcdownsample(pcdenoise(pcmerge(pc12,pc2,0.00001)),'gridAverage',0.005));
     drawnow;
 end
 
 %%
 [objects1]=track3D_part1(img_name_seq1, cam_params);
 [objects2]=track3D_part1(img_name_seq2, cam_params);
-
-
-%Creates hungarian matrix with CostFunction
-M=length(objects1);
-N=length(objects2);
-hungarian_matrix=zeros(N,M);
-
-for i=1:N %for each object
-    for n=1:size(objects2(i).X,2) %for each frame it appears
-        obj_xyz=final_R*[objects2(i).X(:,n) objects2(i).Y(:,n) objects2(i).Z(:,n)]' + repmat(final_T,1,size([objects2(i).X(:,n) objects2(i).Y(:,n) objects2(i).Z(:,n)],1));
-        objects2(i).X(:,n)=(obj_xyz(1,:))';
-        objects2(i).Y(:,n)=(obj_xyz(2,:))';
-        objects2(i).Z(:,n)=(obj_xyz(3,:))';
-    end
-end
-
-for i=1:N
-   for j=1:M
-      hungarian_matrix(i,j) = CostFunction(new_objects(i), old_objects(j));
-   end
-end
-%Does hungarian matching
-matching = assignmentoptimal(hungarian_matrix);
-
-%IF cost is bigger than cost_treshold than object is a new one
-for i=1:N
-   if min(hungarian_matrix(i,:)) > cost_treshold
-      matching(i)=0; 
-   end
-end
 

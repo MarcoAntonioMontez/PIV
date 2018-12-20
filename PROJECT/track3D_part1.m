@@ -26,6 +26,10 @@ histograms=[];
 cost_treshold=2; %30 for distance, 20 for hue
 min_frames_object_appears=1;
 
+
+figure()
+ close all
+
 for frame_num=1:size(imgs,4)
     %%
     %dar set ao i em debug_on
@@ -246,7 +250,7 @@ for frame_num=1:size(imgs,4)
             end  
             
              objects = Concatenate(new_objects(i),objects);
-         end
+         end      
 %          objects =  Concatenate(new_objects(1),objects);     
     end 
         old_objects=new_objects;
@@ -271,6 +275,6 @@ end
 % pc=pointCloud(b1,'Color',b2);
 % showPointCloud(pc);
 % PlotImages(objects(2),imgs,xyz_array,rgbd)
-% objects.frames_tracked;
+objects.frames_tracked;
 
 %%

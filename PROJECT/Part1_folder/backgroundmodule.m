@@ -7,11 +7,11 @@ function [bgdepth, bgrgb] = backgroundmodule(rgb_imgs, depth_imgs)
 %calculate background
 bgdepth=median(depth_imgs(:,:,1:size(rgb_imgs,4)),3); %dim 3 = all the images
 bgrgb=median(rgb_imgs(:,:,1:size(rgb_imgs,4)),3);
-% figure;
-% imagesc(bgdepth);
-% figure;
-% colormap(gray);
-% imagesc(bgrgb);
+figure;
+imagesc(bgdepth);
+figure;
+colormap(gray);
+imagesc(bgrgb);
 
 end
 
