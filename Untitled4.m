@@ -1,12 +1,11 @@
-[objects, cam2toW] = track3D_part2( imgseq1, imgseq2,   cam_params)
 run('vlfeat-0.9.21/toolbox/vl_setup')
 % vl_version verbose
-close all; clear; clc;
+close all; clear all; clc;
 format compact
 
 %Select image directory and image id
-imgdirectory='lab1';
-img='6';
+imgdirectory='duascamaras';
+img='3';
 
 %Draw plots
 plots = 1;
@@ -16,18 +15,18 @@ match_thresh =1.5;
 
 % RANSAC:
 %Set number of iterations
-niter = 100;
+niter = 60;
 
 %Coplanar check. minimum threshold of eigenvalues: the greater the value,
 %the harder it is to find a combination that obeys this
-rank_thresh=0.001;
+rank_thresh=0.00;
 
 %Set error treshold for inliers
-error_tresh = 0.35;
+error_tresh = 0.2;
 
 %Load RGB images
-image2=imread(strcat(imgdirectory,'/rgb_image1_',img,'.png'));
-image1=imread(strcat(imgdirectory,'/rgb_image2_',img,'.png'));
+image1=imread(strcat(imgdirectory,'/rgb_image1_',img,'.png'));
+image2=imread(strcat(imgdirectory,'/rgb_image2_',img,'.png'));
 
 if(plots)
     figure1 = figure();
@@ -41,8 +40,8 @@ image1_gray=rgb2gray(image1);
 image2_gray=rgb2gray(image2);
 
 %Load depth for the respective images
-image2_depth = load(strcat(imgdirectory,'/depth1_',img,'.mat'));
-image1_depth = load(strcat(imgdirectory,'/depth2_',img,'.mat'));
+image1_depth = load(strcat(imgdirectory,'/depth1_',img,'.mat'));
+image2_depth = load(strcat(imgdirectory,'/depth2_',img,'.mat'));
 
 depth_array1 = reshape(image1_depth.depth_array, [480*640, 1]);
 depth_array2 = reshape(image2_depth.depth_array, [480*640, 1]);
