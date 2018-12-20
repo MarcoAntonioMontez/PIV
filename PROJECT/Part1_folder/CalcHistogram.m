@@ -11,8 +11,8 @@ function [ histograms ] = CalcHistogram( connected, nclasses, rgbImage)
            img(:,:,j)=ObjectPixel.*rgbImage(:,:,j);
         end
 
-        figure()
-        imagesc(img(:,:,j))
+%         figure()
+%         imagesc(img(:,:,j))
         
         hsv=rgb2hsv(img(:,:,:));
 

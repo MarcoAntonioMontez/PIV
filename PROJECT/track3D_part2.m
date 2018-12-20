@@ -3,7 +3,7 @@ addpath('P_all_folder','Part2_folder')
 run('vlfeat-0.9.21/toolbox/vl_setup')
 vl_version verbose
 %Draw plots
-plots = 1;
+plots = 0;
 
 %UBC Match:
 match_thresh = 1.5;
@@ -15,8 +15,10 @@ niter = 100;
 %Set error treshold for inliers
 error_tresh = 0.2;
 
-[image1, image1_depth] = load_images(img_name_seq1);
-[image2, image2_depth] = load_images(img_name_seq2);
+img_name_1 = img_name_seq1(15);
+img_name_2 = img_name_seq2(15);
+[image1, image1_depth] = load_images(img_name_1);
+[image2, image2_depth] = load_images(img_name_2);
 [image1, xyz1_array, rgbd1] = align_depth_to_rgb(image1_depth,image1,cam_params);
 [image2, xyz2_array, rgbd2] = align_depth_to_rgb(image2_depth,image2,cam_params); 
 
@@ -206,3 +208,8 @@ if(plots)
     showPointCloud(pcdownsample(pcdenoise(pcmerge(pc12,pc2,0.00001)),'gridAverage',0.005));
     drawnow;
 end
+
+%%
+[objects1]=track3D_part1(img_name_seq1, cam_params);
+[objects2]=track3D_part1(img_name_seq2, cam_params);
+
