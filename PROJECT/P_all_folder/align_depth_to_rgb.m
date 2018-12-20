@@ -8,11 +8,11 @@ function [rgb_imgs, xyz_depth, rgbd] = align_depth_to_rgb(depth_imgs,rgb_imgs,ca
         Z=depth_imgs(:,:,i);
         x_len=size(rgb_imgs(:,:,:,i),1);
         y_len=size(rgb_imgs(:,:,:,i),2);
-        xyz_depth = get_xyzasus(Z(:), size(rgb_imgs(:,:,:,i)), 1:(x_len*y_len), cam_params.Kdepth, 1, 0);
-        rgbd(:,:,:,i) = get_rgbd(xyz_depth, rgb_imgs(:,:,:,i), cam_params.R, cam_params.T, cam_params.Krgb);
+        xyz_depth(:,:,i) = get_xyzasus(Z(:), size(rgb_imgs(:,:,:,i)), 1:(x_len*y_len), cam_params.Kdepth, 1, 0);
+        rgbd(:,:,:,i) = get_rgbd(xyz_depth(:,:,i), rgb_imgs(:,:,:,i), cam_params.R, cam_params.T, cam_params.Krgb);
          
-%         [im_rgb_calib, ~, ~, ~] = depth_to_rgb(rgb_imgs(:,:,:,i),Z);
-%         rgb_imgs(:,:,:,i)=im_rgb_calib;
+        [im_rgb_calib, ~, ~, ~] = depth_to_rgb(rgb_imgs(:,:,:,i),Z);
+        rgb_imgs(:,:,:,i)=im_rgb_calib;
 
 %         xyz_depth_in_rgb = cam_params.Krgb*[cam_params.R cam_params.T]*[xyz_depth;ones(1,640*480)];
 %         depth_align_imgs(:,:,i) = zeros(x_len,y_len);

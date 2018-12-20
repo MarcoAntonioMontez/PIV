@@ -2,7 +2,7 @@ function [ objects ] = track3D_part1( img_name_seq, cam_params)
 addpath('P_all_folder','Part1_folder')
 [imgs, imgsd] = load_images(img_name_seq);
 
-[imgs, depth_align_imgs, xyz_imgs] = align_depth_to_rgb(imgsd,imgs,cam_params); 
+[imgs, xyz_array, rgbd] = align_depth_to_rgb(imgsd,imgs,cam_params); 
 
 imgsd(:,:,1:size(imgsd,3))=double(imgsd(:,:,1:size(imgsd,3)))/1000;
 
@@ -43,7 +43,7 @@ for frame_num=40:50 %size(imgs,4)
     
     
     
-    debugg_on=1;
+    debugg_on=0;
     show_gif_or_images=1; %Gif =0, images=1
      
     if(debugg_on)
