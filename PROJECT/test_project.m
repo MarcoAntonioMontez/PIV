@@ -10,7 +10,7 @@ for i=1:108 %108
     imgseq(i).depth=[s2];
 end
 load('cameraparametersAsus.mat');
-% track3D_part1(imgseq, cam_params);
+track3D_part1(imgseq, cam_params);
 
 
 %%

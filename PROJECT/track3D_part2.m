@@ -1,6 +1,7 @@
 function [ objects, cam2toW ] = track3D_part2( img_name_seq1, img_name_seq2, cam_params)
 addpath('P_all_folder','Part2_folder')
-
+run('vlfeat-0.9.21/toolbox/vl_setup')
+vl_version verbose
 %Draw plots
 plots = 1;
 
@@ -201,5 +202,7 @@ if(plots)
     pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
     pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
     showPointCloud(pcmerge(pc12,pc2,0.00001));
+    figure;
+    showPointCloud(pcdownsample(pcdenoise(pcmerge(pc12,pc2,0.00001)),'gridAverage',0.005));
     drawnow;
 end
