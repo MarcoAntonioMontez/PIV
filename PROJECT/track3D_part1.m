@@ -23,15 +23,11 @@ old_objects=[];
 new_objects=[];
 histograms=[];
 
-cost_treshold=200;
-min_frames_object_appears=10;
+cost_treshold=2; %30 for distance, 20 for hue
+min_frames_object_appears=1;
 
-
-figure()
-close all
-
-for frame_num=40:50 %size(imgs,4)
-    
+for frame_num=1:size(imgs,4)
+    %%
     %dar set ao i em debug_on
     %i=60
     
@@ -40,8 +36,6 @@ for frame_num=40:50 %size(imgs,4)
     %Se só quiserem ver o debug de uma foto, escolham a foto que querem ver pondo o
     % i=num_da_foto
     %E corram só a section dentro do for depois do '%%'
-    
-    
     
     debugg_on=0;
     show_gif_or_images=1; %Gif =0, images=1
@@ -106,30 +100,43 @@ for frame_num=40:50 %size(imgs,4)
     connected2 = bwlabel(connected);
     nclasses = max(connected2(:));
     
-    if(debugg_on | show_gif_or_images )
-        figure()
-        imagesc(connected2)
-    end
+%     if(debugg_on | show_gif_or_images )
+%         figure()
+%         imagesc(connected2)
+%     end
+%     
+%     if(~debugg_on & ~show_gif_or_images)
+%         drawnow
+%         imagesc(connected2)
+%     end
     
-    if(~debugg_on & ~show_gif_or_images)
-        drawnow
-        imagesc(connected2)
-    end
-    
-    %8x3*numclasses
+    %calculates box in world coordinates
     boxes = calc_boxes(imgsd(:,:,frame_num),connected2,nclasses);
     
+    %calculates box in cam coordinates
+    cam_boxes =calc_cam_boxes(imgsd(:,:,frame_num),connected2,nclasses);
+    %Calcular xyz points...
+    
+    %Calculates Histograms
     histograms=CalcHistogram(connected2,nclasses,imgs(:,:,:,frame_num));
-    %If objects struct is empty then initiliaze with objects
     
     
+    %If objects struct is empty then initiliaze with objects   
     if isempty(objects(1).X) && nclasses > 0    
         for j=1:nclasses
             index=((j-1)*3);
-            box = boxes(:,(index+1):(index+3));
+            %world boxes
+            box = boxes(:,(index+1):(index+3));         
             new_objects(j).X=box(:,1);
             new_objects(j).Y=box(:,2);
             new_objects(j).Z=box(:,3);
+            
+            %cam boxes
+            cam_box = cam_boxes(:,(index+1):(index+3));
+            new_objects(j).X_cam=cam_box(:,1);
+            new_objects(j).Y_cam=cam_box(:,2);
+            new_objects(j).Z_cam=cam_box(:,3);
+            
             new_objects(j).frames_tracked=[frame_num];
             new_objects(j).center=CenterCube(box);
             new_objects(j).histogram=histograms(j);
@@ -141,7 +148,15 @@ for frame_num=40:50 %size(imgs,4)
             objects(j).Y=new_objects(j).Y;
             objects(j).Z=new_objects(j).Z;
             objects(j).frames_tracked=[frame_num];
-            objects(j).id=j;           
+            objects(j).id=j;
+            objects(j).histogram=histograms(j);
+            
+            
+            %Save cam boxes
+            objects(j).X_cam=new_objects(j).X_cam;
+            objects(j).Y_cam=new_objects(j).Y_cam;
+            objects(j).Z_cam=new_objects(j).Z_cam;          
+            
         end
     elseif (isempty(old_objects)) && (nclasses > 0)
        
@@ -154,7 +169,12 @@ for frame_num=40:50 %size(imgs,4)
             new_objects(j).frames_tracked=[frame_num];
             new_objects(j).center=CenterCube(box);
             new_objects(j).histogram=histograms(j);
-            %Add histogram calculation
+            
+            %cam boxes
+            cam_box = cam_boxes(:,(index+1):(index+3));
+            new_objects(j).X_cam=cam_box(:,1);
+            new_objects(j).Y_cam=cam_box(:,2);
+            new_objects(j).Z_cam=cam_box(:,3);
             
             
             list_index=(length(objects)+1);
@@ -166,7 +186,6 @@ for frame_num=40:50 %size(imgs,4)
         end
         
     else 
-        % Falta dar debug dos frames 1 ao 30
          for j=1:nclasses
                 index=((j-1)*3);
                 box = boxes(:,(index+1):(index+3));
@@ -176,6 +195,12 @@ for frame_num=40:50 %size(imgs,4)
                 new_objects(j).frames_tracked=[frame_num];
                 new_objects(j).center=CenterCube(box);
                 new_objects(j).histogram=histograms(j);
+                
+                 %cam boxes
+                cam_box = cam_boxes(:,(index+1):(index+3));
+                new_objects(j).X_cam=cam_box(:,1);
+                new_objects(j).Y_cam=cam_box(:,2);
+                new_objects(j).Z_cam=cam_box(:,3);
 
          end
          
@@ -221,14 +246,31 @@ for frame_num=40:50 %size(imgs,4)
             end  
             
              objects = Concatenate(new_objects(i),objects);
-         end      
+         end
 %          objects =  Concatenate(new_objects(1),objects);     
     end 
         old_objects=new_objects;
         new_objects=[];
         histograms=[];
-        
-        %%
-end
+
+
+    
+    
+    %%
 end
 
+% Reject objects that only appear in less than min_frames_object_appears
+for i=length(objects):-1:1
+     if length(objects(i).frames_tracked)<min_frames_object_appears
+         objects(i)=[];
+     end
+end
+% figure()
+% b1=[xyz_array(:,:,1)];
+% b2=reshape(rgbd(:,:,:,1),[480*640 3]);
+% pc=pointCloud(b1,'Color',b2);
+% showPointCloud(pc);
+% PlotImages(objects(2),imgs,xyz_array,rgbd)
+% objects.frames_tracked;
+
+%%

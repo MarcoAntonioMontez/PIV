@@ -8,7 +8,7 @@ function [ distance ] = Distance(A,B,rho)
         y=A.Y(i)-B.Y(i);
         z=A.Z(i)-A.Z(i);
        
-        acum= x^2+y^2+z^2;      
+        acum = acum+x^2+y^2+z^2;      
     end
 
     distance = rho * acum;

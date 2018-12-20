@@ -235,4 +235,38 @@ end
 cam2toW.R=final_R;
 cam2toW.T=final_T;
 
+    %%
+    [objects1]=track3D_part1(img_name_seq1, cam_params);
+    [objects2]=track3D_part1(img_name_seq2, cam_params);
+
+
+    %Creates hungarian matrix with CostFunction
+    M=length(objects1);
+    N=length(objects2);
+    hungarian_matrix1=zeros(N,M);
+    hungarian_matrix2=zeros(M,N);
+
+    for i=1:N %for each object
+        for n=1:size(objects2(i).X,2) %for each frame it appears
+            obj_xyz=final_R*[objects2(i).X(:,n) objects2(i).Y(:,n) objects2(i).Z(:,n)]' + repmat(final_T,1,size([objects2(i).X(:,n) objects2(i).Y(:,n) objects2(i).Z(:,n)],1));
+            objects2(i).X(:,n)=(obj_xyz(1,:))';
+            objects2(i).Y(:,n)=(obj_xyz(2,:))';
+            objects2(i).Z(:,n)=(obj_xyz(3,:))';
+        end
+    end
+
+    figure()
+    showPointCloud(final_xyz12_array');
+    pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
+    pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
+    showPointCloud(pcmerge(pc12,pc2,0.00001));
+    PlotImages(objects2(2),image1,xyz1_array,rgbd1,'g')
+    PlotImages(objects1(1),image1,xyz1_array,rgbd1,'r')
+
+    for k=1:size(img_name_seq1,2)
+        objs1 = objects1
+        objs2 = 
+    end
+
+
 end
