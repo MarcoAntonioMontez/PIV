@@ -4,22 +4,22 @@ close all; clear all; clc;
 format compact
 
 %Select image directory and image id
-imgdirectory='duascamaras';
-img='3';
+imgdirectory='data_rgb1';
+img='6';
 
 %Draw plots
 plots = 1;
 
 %UBC Match:
-match_thresh =1.5;
+match_thresh = 1.8;
 
 % RANSAC:
 %Set number of iterations
-niter = 60;
+niter = 100;
 
-%Coplanar check. minimum threshold of eigenvalues: the greater the value,
+%Colinear check. minimum threshold of eigenvalues: the greater the value,
 %the harder it is to find a combination that obeys this
-rank_thresh=0.00;
+rank_thresh=0.1;
 
 %Set error treshold for inliers
 error_tresh = 0.2;
@@ -224,10 +224,18 @@ final_xyz12_array=final_R*xyz1_array' + repmat(final_T,1,length(xyz1_array));
 
 if(plots)
     %Plot point cloud merge
-    figure(7)        
+    figure(7)
+    
+    hsvd2 = rgb2hsv(rgbd2);
+    hsvd1=rgb2hsv(rgbd1);  
+    hsvd1 = uint8(hsvd1*255);
+    hsvd2 = uint8(hsvd2*255);      
+    hsvd1(:,:,2:3) = 130;
+    hsvd2(:,:,2:3) = 130;
+    
     showPointCloud(final_xyz12_array');
-    pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
-    pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
+    pc2=pointCloud(xyz2_array,'Color',reshape(hsvd2,[480*640 3]));
+    pc12 = pointCloud(final_xyz12_array','Color',reshape(hsvd1,[480*640 3]));
     showPointCloud(pcdenoise(pcmerge(pc12,pc2,0.00001), 'Threshold', 0.5));
     drawnow;
 end
