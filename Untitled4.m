@@ -171,7 +171,7 @@ end
 
 if(plots)
     %Plot the 4 random point pairs used for estimating best projection model
-    figure(figure1)
+    figure(figure1);
     hold on
     plot(plot_points1(index, :, 1), plot_points1(index, :, 2),'*r');
     hold off
@@ -213,7 +213,7 @@ final_xyz12_array=final_R*xyz1_array' + repmat(final_T,1,length(xyz1_array));
 if(plots)
     %Plot point cloud merge
     figure(7)
-    showPointCloud(final_xyz12_array')
+    showPointCloud(final_xyz12_array');
     pc2=pointCloud(xyz2_array,'Color',reshape(rgbd2,[480*640 3]));
     pc12 = pointCloud(final_xyz12_array','Color',reshape(rgbd1,[480*640 3]));
     showPointCloud(pcmerge(pc12,pc2,0.00001));

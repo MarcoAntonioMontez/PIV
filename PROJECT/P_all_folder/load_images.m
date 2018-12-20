@@ -7,7 +7,7 @@ function [rgb_imgs, depth_imgs] = load_images(img_name_seq)
         rgb_imgs(:,:,:,i) = imread(img_name_seq(i).rgb);
 
         a  = load(img_name_seq(i).depth);
-        depth_imgs(:,:,i)=double(a.depth_array)/1000;
+        depth_imgs(:,:,i)=(a.depth_array);
         % /1000 to convert from millimeters to meters
     end
 end

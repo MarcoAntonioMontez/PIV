@@ -4,6 +4,8 @@ addpath('P_all_folder','Part1_folder')
 
 [imgs, depth_align_imgs, xyz_imgs] = align_depth_to_rgb(imgsd,imgs,cam_params); 
 
+imgsd(:,:,1:size(imgsd,3))=double(imgsd(:,:,1:size(imgsd,3)))/1000;
+
 [bgdepth, bggray] = backgroundmodule(imgs, imgsd);
 
 minimum_pixels = 1500;
