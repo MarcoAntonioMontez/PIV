@@ -4,31 +4,10 @@ function [  ] = PlotImages( object,imgs,xyz_array,rgbd,c)
 
 for k=1:length(object.frames_tracked)
 %     for l=1:length(objects)
-        currentFrame=object.frames_tracked(k);
+
         X=object.X(:,k);
         Y=object.Y(:,k);
         Z=object.Z(:,k);
-        center=CenterCube([X,Y,Z]);
-
-
-    %     figure()
-    %     hold all
-    % %     image(imgs(:,:,:,currentFrame));
-    %     image=rot90(imgs(:,:,:,currentFrame),2);
-    %     imagesc(fliplr(image));
-    %     set(gca,'YDir','normal')
-    % %     plot(center(2),480-center(1),'*','MarkerSize',10);
-    %     plot(object.Y(1,k),480-object.X(1,k),'*','MarkerSize',10);
-    %     plot(object.Y(2,k),480-object.X(2,k),'*','MarkerSize',10);
-    %     plot(object.Y(3,k),480-object.X(3,k),'*','MarkerSize',10);
-    %     plot(object.Y(4,k),480-object.X(4,k),'*','MarkerSize',10);
-    %     hold off
-
-%         figure()
-%         b1=[xyz_array(:,:,currentFrame)];
-%         b2=reshape(rgbd(:,:,:,currentFrame),[480*640 3]);
-%         pc=pointCloud(b1,'Color',b2);
-%         showPointCloud(pc);
         
         hold on;
         a1=[X Y Z];
