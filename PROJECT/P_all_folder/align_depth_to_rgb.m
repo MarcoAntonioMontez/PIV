@@ -9,6 +9,7 @@ function [rgb_imgs, xyz_depth, rgbd] = align_depth_to_rgb(depth_imgs,rgb_imgs,ca
         x_len=size(rgb_imgs(:,:,:,i),1);
         y_len=size(rgb_imgs(:,:,:,i),2);
         xyz_depth(:,:,i) = get_xyzasus(Z(:), size(rgb_imgs(:,:,:,i)), 1:(x_len*y_len), cam_params.Kdepth, 1, 0);
+        
         rgbd(:,:,:,i) = get_rgbd(xyz_depth(:,:,i), rgb_imgs(:,:,:,i), cam_params.R, cam_params.T, cam_params.Krgb);
          
 %         [im_rgb_calib, ~, ~, ~] = depth_to_rgb(rgb_imgs(:,:,:,i),Z);
