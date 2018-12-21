@@ -34,7 +34,7 @@ for k=1:length(object.frames_tracked)
         a1=[X Y Z];
         a2=uint8([repmat([255,0,0],8,1)]);
         pc1=pointCloud(a1,'Color',a2);
-        showPointCloud(pc1,'MarkerSize',50);
+        showPointCloud(pc1,'MarkerSize',10);
         
         plot3([X(1) X(2)],[Y(1) Y(2)],[Z(1) Z(2)],'LineWidth',1,'Color',c)
         plot3([X(1) X(3)],[Y(1) Y(3)],[Z(1) Z(3)],'LineWidth',1,'Color',c)

@@ -24,7 +24,7 @@ new_objects=[];
 histograms=[];
 
 cost_treshold=2; %30 for distance, 20 for hue
-min_frames_object_appears=1;
+min_frames_object_appears=5;
 
 for frame_num=1:size(imgs,4)
     %%
@@ -273,4 +273,9 @@ end
 % PlotImages(objects(2),imgs,xyz_array,rgbd)
 % objects.frames_tracked;
 
-%%
+for i=1:length(objects)
+    objects(i).X=objects(i).X';
+    objects(i).Y=objects(i).Y';
+    objects(i).Z=objects(i).Z';
+end
+end
