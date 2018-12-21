@@ -264,12 +264,12 @@ for i=1:N %for each object
     end
 end
 
-figure()
-pc1=pointCloud(xyz1_array,'Color',reshape(rgbd1,[480*640 3]));
-pc21 = pointCloud(final_xyz21_array','Color',reshape(rgbd2,[480*640 3]));
-showPointCloud(pcdenoise(pcmerge(pc21,pc1,0.00001), 'Threshold', 0.5));
-PlotImages(objects2(2),image1,xyz1_array,rgbd1,'g')
-PlotImages(objects1(1),image1,xyz1_array,rgbd1,'r')
+% figure()
+% pc1=pointCloud(xyz1_array,'Color',reshape(rgbd1,[480*640 3]));
+% pc21 = pointCloud(final_xyz21_array','Color',reshape(rgbd2,[480*640 3]));
+% showPointCloud(pcdenoise(pcmerge(pc21,pc1,0.00001), 'Threshold', 0.5));
+% PlotImages(objects2(2),image1,xyz1_array,rgbd1,'g')
+% PlotImages(objects1(1),image1,xyz1_array,rgbd1,'r')
 
 for i=1:N
     for j=1:M
